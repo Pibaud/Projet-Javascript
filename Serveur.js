@@ -69,3 +69,39 @@ io.on('connection', (socket) => {
         }
     });
 });
+
+// Calcul des coordonnées des six points d'un hexagone
+
+function creerHexagone(rayon) {
+    var points = new Array();
+    for(var i = 0 ; i < 6 ; ++i){
+       var angle = i * Math . PI / 3;
+       var x = Math.sin(angle) * rayon;
+       var y = -Math.cos(angle) * rayon;
+       points.push([Math.round(x * 100 )/100 , Math.round(y * 100)/100]);
+    }
+    return points;
+ }
+
+ var hexagones = creerHexagone(50);
+ let distance = 0;
+
+ // Appel de creerHexagone en boucle pour créer les 11x11 hexagones
+
+ for(var l=0; l < nbLignes; l++) {
+    for(var c=0; c < nbColonnes; c++) {
+       var d = "" , x , y ;
+       for(h in hexagones) {
+       x = hexagones[h][0]+(rayon - distance)*(2 + ligne + 2*colonne);
+       y = distance*2 + hexagones[h][1]+(rayon-distance*2)*(1+2*ligne);
+       if(h == 0) d += "M"+x+" , "+y+" L" ;   
+       else d += x+" , "+y+" " ; }
+    d += "Z" ;
+    d3.select("svg")
+    .append("path")
+    .attr("d",d)
+    .attr("stroke" , "black").attr("fill" , "white")
+    .attr("id" , "h"+(ligne * nbLignes + colonne))
+    .on("click",function(d) {/* colorer la case du joueur de sa couleur si c'est son tour */} );
+    }
+ }
