@@ -105,3 +105,5 @@ function creerHexagone(rayon) {
     .on("click",function(d) {/* colorer la case du joueur de sa couleur si c'est son tour */} );
     }
  }
+
+ //ajouter la declaration de la fonction damier et son appel
