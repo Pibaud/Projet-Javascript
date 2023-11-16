@@ -8,7 +8,7 @@ app.get('/', (request, response) => {
     response.sendFile('Projet.html', {root: __dirname});
 });
 
-var nbJoueurs = 4;  // Peut être positionnée à n'importe quelle valeur
+var nbJoueurs = 2;  // Peut être positionnée à n'importe quelle valeur
 var joueurs = [];
 var jeton = -1;
   

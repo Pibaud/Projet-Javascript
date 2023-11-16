@@ -16,33 +16,35 @@
 
          function entrerDansLaPartie() {
             let nom = document.getElementById("nom").value;
-            console.log("Entrée de "+nom);
             if (nom != "" && nom != " ") socket.emit('entree', nom);
          }
+
          socket.on('entree', data => {
             numJoueur = data.numJoueur;
             console.log("Le serveur confirme mon entrée avec numJoueur="+numJoueur);
             $("#btentree").toggle();
             $("#listeJoueurs").text(data.nomsJoueurs);
          });
+
          socket.on('entreeAutreJoueur', data => {
-                  console.log("Le serveur confirme l'entrée de "+data.nomJoueur);
+            console.log("Le serveur confirme l'entrée de "+data.nomJoueur);
             $("#listeJoueurs").text(data.nomsJoueurs);
          });
 
          function quitterLaPartie() {
             let nom = document.getElementById("nom").value;
             console.log("Sortie de "+nom);
+           
             if (nom != "" && nom != " ") socket.emit('sortie', nom);
          }
          socket.on('sortie', data => {
             console.log("Le serveur confirme ma sortie");
-            //console.dir(data);
             numJoueur = -1;
             document.getElementById("nom").value = "";
             $("#btentree").toggle();
             $("#listeJoueurs").text(data.nomsJoueurs);
          });
+
          socket.on('sortieAutreJoueur', data => {
             console.log("Le serveur confirme la sortie de "+data.nomJoueur);   
             numJoueur = data.numJoueur;
@@ -53,6 +55,7 @@
             console.log("Envoi du message :", input.value)
             socket.emit("message", {'numJoueur':numJoueur, 'texte':input.value});
          }
+         
          socket.on('message', message => { 
             console.log("Réception du message :", message);
             let messagesPrecedents = $("#messages").val();
