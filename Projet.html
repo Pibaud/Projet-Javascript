@@ -6,6 +6,9 @@
       <script src="/socket.io/socket.io.js"></script>
       <script> var socket = io(); </script>
       <script>
+
+         var nbLignes = nbColonnes = 11;
+         var rayon;
          var numJoueur = -1;
          
          socket.on('joueurs', nomsJoueurs => {
@@ -66,6 +69,50 @@
          socket.on('messageServeur', message => {
             console.log("Message serveur :", message);
             $("#messageServeur").text(message); });
+
+         function creePointsHexagone(rayon) {
+            var points = new Array();
+            for (var i = 0; i < 6; ++i) {
+                  var angle = i * Math.PI / 3;
+                  var x = Math.sin(angle) * rayon;
+                  var y = -Math.cos(angle) * rayon;
+                  points.push([Math.round(x*100)/100, Math.round(y*100)/100]);
+            }
+            return points;
+         }
+   
+         function genereDamier(rayon, nbLignes, nbColonnes) {
+            let distance =  rayon - (Math.sin(1 * Math.PI / 3) * rayon); // distance entre deux hexagones
+
+            d3.select("#tablier").append("svg").attr("id","svgTablier").attr("width", nbColonnes*1.33*2*rayon).attr("height",nbLignes*2*rayon);
+            let hexagone = creePointsHexagone(rayon);
+            for (let ligne=0; ligne < nbLignes; ligne++) {
+               for (let colonne=0; colonne < nbColonnes; colonne++) {
+                  let d = "", x, y;
+                  for (h in hexagone) {
+                     x = hexagone[h][0]+(rayon-distance)*(2+ligne+2*colonne);
+                     y = distance*2 + hexagone[h][1]+(rayon-distance*2)*(1+2*ligne);
+                     if (h == 0) d += "M"+x+","+y+" L";
+                     else        d +=     x+","+y+" ";
+                  }
+                  d += "Z";
+                  d3.select("#svgTablier")
+                     .append("path")
+                     .attr("d", d)
+                     .attr("stroke", "black")
+                     .attr("fill", "white")
+                     .attr("class", "hexagoneDamier")
+                     .attr("id", "h"+(ligne*nbLignes+colonne)) // car un id doit commencer par une lettre
+                     .on("click", function(d) {
+                        let numHexagone = parseInt(d3.select(this).attr('id').substring(1));
+                        if (numJoueur == jeton) {
+                           console.log("clic sur", numHexagone);
+                           socket.emit('pion', {'position':numHexagone,'numJoueur':numJoueur});
+                        };
+                     });
+               }
+            }
+         }
 
       </script>
   </head>
