@@ -11,6 +11,7 @@ app.get('/', (request, response) => {
 });
 
 var nbJoueurs = 2;  // Peut être positionnée à n'importe quelle valeur
+var nbLignes = nbColonnes = 11;
 var joueurs = [];
 var jeton = -1;
   
