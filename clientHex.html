@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+      <meta charset="UTF-8" />
+      <style>
+         #debut {visibility: hidden;}
+         #nom {visibility: visible;}
+         /* #nom {display: block;} */
+         #identité {visibility: hidden;}
+         #fin {visibility: hidden;}
+         #btsortie {visibility: hidden;}
+         #actionsMeta {float:left;}
+         #decks {float:left;}
+         #tablier {float:left;}
+         body  {font-size: 10pt;}
+         button {font-size: 10px;}
+         #message, #chat {font-family: monospace; font-size: 8pt;}
+         .heavy {font: bold 14px sans-serif;}
+      </style>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+      <script src="https://d3js.org/d3.v5.min.js"></script>
+      <script src="/socket.io/socket.io.js"></script>
+      <script> var socket = io(); </script>
+      <script>
+         var rayon;  // Calculé lors du chargement de la page
+         var nbLignes = nbColonnes = 11;
+         var nbMaxJoueurs = 4;
+         var couleurs = ["red", "blue", "yellow", "green"];
+         var nomsJoueurs = []; // tjrs mis à jour par le serveur
+         var numJoueur = -1;
+         var partieEnCours = false;
+         var jeton = -1;  // renvoyé au début d'une partie et à chaque pose de pion
+         var nbMessages = nbLignes*2;
+
+         function demandeJoueurs() {
+            console.log('Demande des joueurs');
+            socket.emit('joueurs');
+         }
+         socket.on('joueurs', joueurs => {
+            console.log("Joueurs reçus du serveur : ");
+            console.dir(joueurs);
+            for (let indiceJ in joueurs) affichageDeckJoueur(indiceJ, joueurs[indiceJ]);
+            nomsJoueurs = joueurs;
+         });
+
+         socket.on('debutPartie', joueurs => {
+            console.log("Début de la partie");
+            partieEnCours = true;
+            jeton = 0;
+            $("#debut").css("visibility","hidden");
+            $("#fin").css("visibility","visible");
+            $("#nomJoueur"+data.jeton).text(">> "+nomsJoueurs[jeton]);
+         });
+
+         socket.on('finPartie', data => {
+            console.log("Reset de la partie", data.contexte);
+            console.dir(data);
+            partieEnCours = false;
+            jeton = -1;
+            for (let numJ in nomsJoueurs)
+               if (!data.nomsJoueurs.includes(nomsJoueurs[numJ]))
+                  desaffichageDeckJoueur(numJ, nomsJoueurs[numJ]);
+            nomsJoueurs = data.nomsJoueurs;
+            for (let i=0; i<nbLignes*nbColonnes; i++) d3.select("#h"+i).attr("fill", "white");
+            $("#fin").css("visibility","hidden");
+            if (data.contexte == 'surSortie') {
+               numJoueur = -1;
+               $("#debut").css("visibility","hidden");
+               $("#fin").css("visibility","hidden");
+               document.getElementById("nom").value = "";
+               $("#nom").css("visibility","visible");
+               $("#identité").text("Vous êtes un bel inconnu");
+               $("#btentree").css("visibility","visible");
+               $("#btsortie").css("visibility","hidden");
+            }
+            else $("#debut").css("visibility","visible");
+         });
+
+         function affichageDeckJoueur(numJoueur, nomJoueur) {
+            $("#nomJoueur"+numJoueur).text(nomJoueur);
+         }
+
+         function desaffichageDeckJoueur(numJoueur, nomJoueur) {
+            console.log("Désaffichage de "+numJoueur);
+            $("#nomJoueur"+numJoueur).text("");
+         }
+
+         function entrerDansLaPartie() {
+            let nom = document.getElementById("nom").value;
+            console.log("Entrée de "+nom);
+            if (nom != "" && nom != " ") socket.emit('entree', nom);
+         }
+         socket.on('entree', data => {
+            numJoueur = data.numJoueur;
+            nomsJoueurs = data.nomsJoueurs;
+            console.dir(nomsJoueurs);
+            console.log("Le serveur confime mon entrée avec numJoueur="+numJoueur);
+            $("#debut").css("visibility","visible");
+            $("#btentree").css("visibility","hidden");
+            $("#nom").css("visibility","hidden");
+            $("#identité").text("Vous êtes "+data.nomJoueur+" ("+data.numJoueur+") ");
+            $("#identité").css("visibility","visible");
+            $("#btsortie").css("visibility","visible");
+            affichageDeckJoueur(data.numJoueur, data.nomJoueur);    
+         });
+         socket.on('entreeAutreJoueur', data => {
+            console.log("Le serveur confirme l'entrée de "+data.nomJoueur);
+            nomsJoueurs = data.nomsJoueurs;
+            affichageDeckJoueur(data.numJoueur, data.nomJoueur); 
+         });
+
+         function quitterLaPartie() {
+            let nom = document.getElementById("nom").value;
+            console.log("Sortie de "+nom);
+            if (nom != "" && nom != " ") socket.emit('sortie', nom);
+         }
+         socket.on('sortie', data => {
+            console.log("Le serveur confirme ma sortie");
+            numJoueur = -1;
+            $("#debut").css("visibility","hidden");
+            $("#fin").css("visibility","hidden");
+            document.getElementById("nom").value = "";
+            $("#nom").css("visibility","visible");
+            $("#identité").text("Vous êtes un bel inconnu");
+            $("#btsortie").css("visibility","hidden");
+            desaffichageDeckJoueur(data.numJoueur, data.nomJoueur);
+         });
+         socket.on('sortieAutreJoueur', data => {
+            console.log("Le serveur confirme la sortie de",data.nomJoueur,data.numJoueur);   
+            desaffichageDeckJoueur(data.numJoueur, data.nomJoueur);
+            nomsJoueurs = data.nomsJoueurs;  // le nom du joueur a été remplacé par X dans deserteurs qui est renvoyé ici
+            jeton = data.jeton;
+            $("#nomJoueur"+data.jeton).text(">> "+nomsJoueurs[data.jeton]);
+         });
+
+         function debutPartie() {
+            console.log("Partie lancée");
+            if (numJoueur > -1) socket.emit('debutPartie', nomsJoueurs[numJoueur]);
+         }
+
+         function finPartie() {
+            console.log("Partie arrêtée");
+            if (numJoueur > -1) socket.emit('finPartie', nomsJoueurs[numJoueur]);
+         }
+
+         function creePointsHexagone(rayon) {
+            var points = new Array();
+            for (var i = 0; i < 6; ++i) {
+                  var angle = i * Math.PI / 3;
+                  var x = Math.sin(angle) * rayon;
+                  var y = -Math.cos(angle) * rayon;
+                  points.push([Math.round(x*100)/100, Math.round(y*100)/100]);
+            }
+            return points;
+         }
+   
+         function genereDamier(rayon, nbLignes, nbColonnes) {
+            let distance =  rayon - (Math.sin(1 * Math.PI / 3) * rayon); // distance entre deux hexagones
+
+            d3.select("#tablier").append("svg").attr("id","svgTablier").attr("width", nbColonnes*1.33*2*rayon).attr("height",nbLignes*2*rayon);
+            let hexagone = creePointsHexagone(rayon);
+            for (let ligne=0; ligne < nbLignes; ligne++) {
+               for (let colonne=0; colonne < nbColonnes; colonne++) {
+                  let d = "", x, y;
+                  for (h in hexagone) {
+                     x = hexagone[h][0]+(rayon-distance)*(2+ligne+2*colonne);
+                     y = distance*2 + hexagone[h][1]+(rayon-distance*2)*(1+2*ligne);
+                     if (h == 0) d += "M"+x+","+y+" L";
+                     else        d +=     x+","+y+" ";
+                  }
+                  d += "Z";
+                  d3.select("#svgTablier")
+                     .append("path")
+                     .attr("d", d)
+                     .attr("stroke", "black")
+                     .attr("fill", "white")
+                     .attr("class", "hexagoneDamier")
+                     .attr("id", "h"+(ligne*nbLignes+colonne)) // car un id doit commencer par une lettre
+                     .on("click", function(d) {
+                        let numHexagone = parseInt(d3.select(this).attr('id').substring(1));
+                        if (numJoueur == jeton) {
+                           console.log("clic sur", numHexagone);
+                           socket.emit('pion', {'position':numHexagone,'numJoueur':numJoueur});
+                        };
+                     });
+               }
+            }
+         }
+         socket.on('pion', data => {
+            $("#h"+data.position).attr('fill', couleurs[data.numJoueur]);
+            jeton = data.jeton;
+            // Pour signaler le tour
+            $("#nomJoueur"+data.numJoueur).text(nomsJoueurs[data.numJoueur]);
+            $("#nomJoueur"+data.jeton).text(">> "+nomsJoueurs[data.jeton]);
+         });
+
+         function genereChat(rayon) {
+            for (let i=0; i < nbMessages; i++){
+               $("#chat").append("<span id='t"+i+"'></span><br/>");
+               $("span").css("height", rayon/4);
+            }
+         }
+
+         function envoiMessage(message) {
+            socket.emit('message', message.value);
+            message.value="";
+         }
+
+         socket.on('messages', data => {
+            console.dir(data);
+
+            let numMessageInitial = data.length - nbMessages;
+            if (numMessageInitial >= 0) {
+               let numSpan = 0;
+               while (numSpan < nbMessages) {
+                  $("#t"+numSpan).css("color",data[numSpan].couleur);
+                  $("#t"+numSpan).text(data[numMessageInitial+numSpan].message);
+                  numSpan++;
+               }
+            }
+            else {
+               let numSpan = 0;
+               while (numSpan < data.length) {
+                  $("#t"+numSpan).css("color",data[numSpan].couleur);
+                  $("#t"+numSpan).text(data[numSpan].message);
+                  numSpan++;
+               }
+            }
+         });
+
+         socket.on('message', message => {  // on considère pour l'instant qu'un message signale une erreur
+            console.log(message);
+         });
+
+         //----------------------------------------------------------
+
+         window.addEventListener('load', (event) => {
+            let largeurF = document.documentElement.clientWidth;
+            console.log("Largeur de la fenêtre : "+largeurF);
+            rayon = largeurF/(7+(nbColonnes*2*1.33)+13); // decks tablier chat
+            console.log("Rayon : "+rayon);
+            for (let joueur=0; joueur < nbMaxJoueurs; joueur++) {
+               let ratioAffichage = 0.66;  // à calculer
+               d3.select("#joueur"+joueur).append("svg").attr("id","svgJoueur"+joueur)
+                  .attr("width",15 + 6*rayon*ratioAffichage).attr("height",rayon*ratioAffichage*6.5);
+               d3.select("#svgJoueur"+joueur)
+                  .append("text").attr("x", 10).attr("y",10)
+                  .attr("class", "heavy").attr("fill", couleurs[joueur])
+                  .attr("id", "nomJoueur"+joueur);
+            }
+            genereDamier(rayon, nbLignes, nbColonnes);
+            genereChat(rayon);
+            demandeJoueurs();
+         });
+
+      </script>
+  </head>
+
+  <body>
+      <button type="button" onClick="debutPartie()" id="debut"> Lancer la partie </button>
+      <button type="button" onClick="finPartie()" id="fin"> Reset partie </button>
+      &nbsp;&nbsp; <span> Le premier joueur qui relie deux bords opposés gagne. </span><br/>
+      <div>
+         <div id="actionsMeta">
+            <input id="nom" type="text" size="10" placeholder="Votre nom"/>
+            <button type="button" onClick="entrerDansLaPartie()" id="btentree">
+               Entrer dans la partie </button>
+            <span id="identité">Vous êtes un bel inconnu</span>
+            <button type="button" onClick="quitterLaPartie()" id="btsortie">
+               Quitter la partie </button>
+         </div>
+         <div> &nbsp;&nbsp;&nbsp;Message : <input type="text" id="message" size="35" maxLength="35" onChange="envoiMessage(this)"></input> </div>
+     </div>
+      <hr/>
+      <div id="interface">
+         <div id="decks">
+            <div id="joueur0"></div> <br/>
+            <div id="joueur1"></div> <br/>
+            <div id="joueur2"></div> <br/>
+            <div id="joueur3"></div>
+         </div>
+         <div id="tablier"></div>
+         <div id="chat"></div>
+      </div>
+  </body>
+</html>
+ 

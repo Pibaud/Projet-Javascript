@@ -1,0 +1,14 @@
+#reproduction{
+    text-align: center;
+}
+
+#graduation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.slider {
+    width: 80%;
+    margin: 0 auto;
+}

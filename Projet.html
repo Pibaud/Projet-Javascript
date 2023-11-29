@@ -1,23 +1,81 @@
 <!DOCTYPE html>
 <html lang="fr">
   <head>
+      <link rel="stylesheet" href="style.css">
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
       <script src="https://d3js.org/d3.v5.min.js"></script> 
       <script src="/socket.io/socket.io.js"></script>
       <script> var socket = io(); </script>
       <script>
          var numJoueur = -1;
+         const rayon = 35;
+         const nbLignes = nbColonnes = 13;
          
+         function entrerDansLaPartie() {
+            let nom = document.getElementById("nom").value;
+            if (nom != "" && nom != " ") socket.emit('entree', nom);
+         }
+
+         function quitterLaPartie() {
+            let nom = document.getElementById("nom").value;
+            console.log("Sortie de "+nom);
+           
+            if (nom != "" && nom != " ") socket.emit('sortie', nom);
+         }
+
+         // Calcul des coordonnées des six points d'un hexagone
+
+         function creerHexagone(rayon) {
+            var points = new Array();
+            for(var i = 0 ; i < 6 ; ++i){
+               var angle = i * Math.PI / 3;
+               var x = Math.sin(angle) * rayon;
+               var y = -Math.cos(angle) * rayon;
+               points.push([Math.round(x * 100 )/100 , Math.round(y * 100)/100]);
+            }
+            return points;
+         }
+
+         // 13 x 13 appels de creerHexagone pour creer le terrain
+
+         function creerDamier(rayon, nbLignes, nbColonnes) {
+            let distance =  rayon - (Math.sin(1 * Math.PI / 3) * rayon); // distance entre deux hexagones
+
+            d3.select("#tablier").append("svg").attr("id","svgTablier").attr("width", nbColonnes*1.33*2*rayon).attr("height",nbLignes*2*rayon);
+            let hexagone = creerHexagone(rayon);
+            for (let ligne=0; ligne < nbLignes; ligne++) {
+               for (let colonne=0; colonne < nbColonnes; colonne++) {
+                  let d = "", x, y;
+                  for (h in hexagone) {
+                     x = hexagone[h][0]+(rayon-distance)*(2+ligne+2*colonne);
+                     y = distance*2 + hexagone[h][1]+(rayon-distance*2)*(1+2*ligne);
+                     if (h == 0) d += "M"+x+","+y+" L";
+                     else        d +=     x+","+y+" ";
+                  }
+                  d += "Z";
+                  d3.select("#svgTablier")
+                     .append("path")
+                     .attr("d", d)
+                     .attr("stroke", "black")
+                     .attr("fill", "white")
+                     .attr("class", "hexagoneDamier")
+                     .attr("id", "h"+(ligne*nbLignes+colonne)) // car un id doit commencer par une lettre
+                     .on("click", function(d) {
+                        let numHexagone = parseInt(d3.select(this).attr('id').substring(1));
+                        if (numJoueur == jeton) {
+                           console.log("clic sur", numHexagone);
+                           socket.emit('pion', {'position':numHexagone,'numJoueur':numJoueur});
+                        };
+                     });
+               }
+            }
+         }
+
          socket.on('joueurs', nomsJoueurs => {
             console.log("joueurs reçus du serveur : ");
             console.dir(nomsJoueurs);
             $("#listeJoueurs").text(nomsJoueurs);
          });
-
-         function entrerDansLaPartie() {
-            let nom = document.getElementById("nom").value;
-            if (nom != "" && nom != " ") socket.emit('entree', nom);
-         }
 
          socket.on('entree', data => {
             numJoueur = data.numJoueur;
@@ -31,12 +89,6 @@
             $("#listeJoueurs").text(data.nomsJoueurs);
          });
 
-         function quitterLaPartie() {
-            let nom = document.getElementById("nom").value;
-            console.log("Sortie de "+nom);
-           
-            if (nom != "" && nom != " ") socket.emit('sortie', nom);
-         }
          socket.on('sortie', data => {
             console.log("Le serveur confirme ma sortie");
             numJoueur = -1;
@@ -49,52 +101,71 @@
             console.log("Le serveur confirme la sortie de "+data.nomJoueur);   
             numJoueur = data.numJoueur;
             $("#listeJoueurs").text(data.nomsJoueurs);
-         });
-
-         function envoiMessage(input) {
-            console.log("Envoi du message :", input.value)
-            socket.emit("message", {'numJoueur':numJoueur, 'texte':input.value});
-         }
-         
-         socket.on('message', message => { 
-            console.log("Réception du message :", message);
-            let messagesPrecedents = $("#messages").val();
-            $("#messages").val(messagesPrecedents+'\n'+message);
-            $("#message").val("");
-         });
+         });   
 
          socket.on('messageServeur', message => {
             console.log("Message serveur :", message);
             $("#messageServeur").text(message); });
 
+         window.addEventListener('load', (event) => {
+            creerDamier(rayon, nbLignes, nbColonnes);
+         });
+
       </script>
   </head>
   <body>
-      <div id ="joueurs">
-         Joueurs : <label id="listeJoueurs"></label> <br/>
-         Votre nom <input id="nom" type="text" />
+      <div id ="joueurs" >
+         Joueurs : <label id="listeJoueurs"></label> <br/>  <!-- à cacher si c'est une partie en solon -->
+         Votre nom <input id="nom" type="text" /> <!-- si la liste des joueurs est vide, il est l'initiateur -->
+         <br>
+         Caractéristiques : 
+         <br><br>
+         Taux de reproduction :
+         <br>
+         <div class="axe">
+            <input type="range" id="reproduction" class="slider" name="reproduction" min="1" max="5" step="1" value="1">
+            <div id="graduation">
+               <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+          </div>
+         </div>
+         
+         <br><br>
+         Perception :
+         <br>
+         <input type="range" id="perception" name="perception" min="1" max="5" step="1" value="1">
+         <div id="graduation">
+            <span>1</span>
+            <span>2</span>
+            <span>3</span>
+            <span>4</span>
+            <span>5</span>
+          </div>
+         <br><br>
+         Force :
+         <br>
+         <input type="range" id="force" name="force" min="1" max="5" step="1" value="1">
+         <div id="graduation">
+            <span>1</span>
+            <span>2</span>
+            <span>3</span>
+            <span>4</span>
+            <span>5</span>
+          </div>
+         <br><br>
          <button type="button" onClick="entrerDansLaPartie()">
             Entrer dans la partie </button>
          <button type="button" onClick="quitterLaPartie()">
             Quitter la partie </button> <br/>
       </div>
       <hr/>
-      Message du serveur : <label id="messageServeur"></label>
+      Message du serveur : <label id="messageServeur"></label> <!-- à cacher tant qu'il n'y a pas d'erreur et le cacher si le joueur a pu rentrer -->
       <hr/>
       
       <hr/>
-      <div id="jeu">
-         <div id="chat">
-            Votre message <input id="message" type="text" onChange="envoiMessage(this)"/> <br/>
-         <textarea id="messages" rows="20" cols="75"></textarea>
-         </div>
-         <div id="hexagones">
-            <svg id="tablier" width="500" height="500">
+      <div id="hexagones">
+         <svg id="tablier" width="1200" height="1200">
          
-            </svg>
-         </div>
-         
-      </div>
-      
+         </svg>
+      </div>    
   </body>
 </html>

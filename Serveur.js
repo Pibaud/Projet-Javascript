@@ -4,6 +4,8 @@ const http = require('http');
 const server = http.createServer(app);
 const io = new require("socket.io")(server)
 
+app.use(express.static('public'));
+
 app.get('/', (request, response) => {
     response.sendFile('Projet.html', {root: __dirname});
 });
@@ -58,52 +60,4 @@ io.on('connection', (socket) => {
         }
         else socket.emit('messageServeur', 'Joueur inconnu');
     });
-
-    socket.on('message', data => {
-        console.log("Message à diffuser de",data.numJoueur,":",data.texte);
-        if (data.numJoueur == -1) socket.emit('messageServeur', 'Vous devez vous inscrire dans la partie !');
-        else {
-            let message = joueurs[data.numJoueur]+" : "+data.texte;
-            console.log("Message à diffuser :", message)
-            io.emit('message', message);
-        }
-    });
 });
-
-// Calcul des coordonnées des six points d'un hexagone
-
-function creerHexagone(rayon) {
-    var points = new Array();
-    for(var i = 0 ; i < 6 ; ++i){
-       var angle = i * Math . PI / 3;
-       var x = Math.sin(angle) * rayon;
-       var y = -Math.cos(angle) * rayon;
-       points.push([Math.round(x * 100 )/100 , Math.round(y * 100)/100]);
-    }
-    return points;
- }
-
- var hexagones = creerHexagone(50);
- let distance = 0;
-
- // Appel de creerHexagone en boucle pour créer les 11x11 hexagones
-
- for(var l=0; l < nbLignes; l++) {
-    for(var c=0; c < nbColonnes; c++) {
-       var d = "" , x , y ;
-       for(h in hexagones) {
-       x = hexagones[h][0]+(rayon - distance)*(2 + ligne + 2*colonne);
-       y = distance*2 + hexagones[h][1]+(rayon-distance*2)*(1+2*ligne);
-       if(h == 0) d += "M"+x+" , "+y+" L" ;   
-       else d += x+" , "+y+" " ; }
-    d += "Z" ;
-    d3.select("svg")
-    .append("path")
-    .attr("d",d)
-    .attr("stroke" , "black").attr("fill" , "white")
-    .attr("id" , "h"+(ligne * nbLignes + colonne))
-    .on("click",function(d) {/* colorer la case du joueur de sa couleur si c'est son tour */} );
-    }
- }
-
- //ajouter la declaration de la fonction damier et son appel
