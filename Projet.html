@@ -14,13 +14,18 @@
          var numJoueur = -1;
          const nbMaxJoueurs = 4;
 
-         function entrerDansLaPartie() {  
+         function creerLaPartie(){
             let nom = document.getElementById("nom").value;
             let nbJoueurs = parseInt(document.getElementById("nbJoueurs").value,10);
             let nbTours = parseInt(document.getElementById("nbTours").value,10);
             let reproduction = parseInt(document.getElementById("reproduction").value,10);
             let perception = parseInt(document.getElementById("perception").value,10);
             let force = parseInt(document.getElementById("force").value,10);
+            if (nom != "" && nom != " ") socket.emit('entree', {'nom':nom, 'nbJoueurs':nbJoueurs, 'nbTours':nbTours, 'reproduction':reproduction, 'perception':perception, 'force':force});
+         }
+
+         function entrerDansLaPartie() {  
+            let nom = document.getElementById("nom").value;
             if (nom != "" && nom != " ") socket.emit('entree', nom);
          }
 
@@ -143,7 +148,8 @@
          <br>
          <input type="range" class="slider" id="force" name="force" min="1" max="5" step="1" value="1">
          <br><br>
-         <button type="button" onClick="entrerDansLaPartie()">
+         <button type="button" onClick="creerLaPartie()">Créer la partie</button> <!-- si joueurs.length == 0 -->
+         <button type="button" onClick="entrerDansLaPartie()">        <!-- si joueurs.length != 0 (s'il n'est pas le premier joueur) -->
             Entrer dans la partie </button>
          <button type="button" onClick="quitterLaPartie()">
             Quitter la partie </button> <br/>
