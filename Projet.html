@@ -8,7 +8,7 @@
       <script>
 
          var nbLignes = nbColonnes = 11;
-         var rayon;
+         var rayon = 35;
          var numJoueur = -1;
          
          socket.on('joueurs', nomsJoueurs => {
@@ -70,7 +70,7 @@
             console.log("Message serveur :", message);
             $("#messageServeur").text(message); });
 
-         function creePointsHexagone(rayon) {
+         function creePointsHexagone(rayon) { //Calcul des coordonnées des six points d'un hexagone
             var points = new Array();
             for (var i = 0; i < 6; ++i) {
                   var angle = i * Math.PI / 3;
