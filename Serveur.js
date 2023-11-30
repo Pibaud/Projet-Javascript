@@ -22,8 +22,12 @@ io.on('connection', (socket) => {
 
     socket.on('entree', nomJoueur => {
         console.log("Entrée dans la partie de "+nomJoueur);
+        console.log(joueurs.length);
         if (joueurs.length < nbJoueurs)
             if (!joueurs.includes(nomJoueur)) {
+                var joueur = new Map();
+                joueur.set("name", nomJoueur);
+                console.log(joueur);
                 joueurs.push(nomJoueur);
                 if (joueurs.length == nbJoueurs) {
                     jeton = 0;
@@ -59,16 +63,6 @@ io.on('connection', (socket) => {
                                     'nomsJoueurs':nomsJoueurs});
         }
         else socket.emit('messageServeur', 'Joueur inconnu');
-    });
-
-    socket.on('message', data => {
-        console.log("Message à diffuser de",data.numJoueur,":",data.texte);
-        if (data.numJoueur == -1) socket.emit('messageServeur', 'Vous devez vous inscrire dans la partie !');
-        else {
-            let message = joueurs[data.numJoueur]+" : "+data.texte;
-            console.log("Message à diffuser :", message)
-            io.emit('message', message);
-        }
     });
 
     socket.on('nbJoueurs', data =>{

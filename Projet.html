@@ -12,10 +12,15 @@
          var nbLignes = nbColonnes = 11;
          var rayon = 35;
          var numJoueur = -1;
-         nbMaxJoueurs = 4;
+         const nbMaxJoueurs = 4;
 
-         function entrerDansLaPartie() {
+         function entrerDansLaPartie() {  
             let nom = document.getElementById("nom").value;
+            let nbJoueurs = parseInt(document.getElementById("nbJoueurs").value,10);
+            let nbTours = parseInt(document.getElementById("nbTours").value,10);
+            let reproduction = parseInt(document.getElementById("reproduction").value,10);
+            let perception = parseInt(document.getElementById("perception").value,10);
+            let force = parseInt(document.getElementById("force").value,10);
             if (nom != "" && nom != " ") socket.emit('entree', nom);
          }
 
@@ -128,15 +133,15 @@
          <br>
          Reproduction :
          <br>
-         <input type="range" class="slider" name="reproduction" min="1" max="5" step="1" value="1">
+         <input type="range" class="slider" id="reproduction" name="reproduction" min="1" max="5" step="1" value="1">
          <br><br>
          Perception :
          <br>
-         <input type="range" class="slider" name="perception" min="1" max="5" step="1" value="1">
+         <input type="range" class="slider" id="perception" name="perception" min="1" max="5" step="1" value="1">
          <br><br>
          Force :
          <br>
-         <input type="range" class="slider" name="force" min="1" max="5" step="1" value="1">
+         <input type="range" class="slider" id="force" name="force" min="1" max="5" step="1" value="1">
          <br><br>
          <button type="button" onClick="entrerDansLaPartie()">
             Entrer dans la partie </button>
