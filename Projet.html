@@ -10,6 +10,7 @@
          var nbLignes = nbColonnes = 11;
          var rayon = 35;
          var numJoueur = -1;
+         nbMaxJoueurs = 4;
 
          function entrerDansLaPartie() {
             let nom = document.getElementById("nom").value;
@@ -66,6 +67,10 @@
                }
             }
          }
+         
+         window.addEventListener('load', (event) => {
+            genereTerrain(rayon, nbLignes, nbColonnes);
+         });
          
          socket.on('joueurs', nomsJoueurs => {
             console.log("joueurs reçus du serveur : ");
