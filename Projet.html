@@ -10,29 +10,11 @@
          var nbLignes = nbColonnes = 11;
          var rayon = 35;
          var numJoueur = -1;
-         
-         socket.on('joueurs', nomsJoueurs => {
-            console.log("joueurs reçus du serveur : ");
-            console.dir(nomsJoueurs);
-            $("#listeJoueurs").text(nomsJoueurs);
-         });
 
          function entrerDansLaPartie() {
             let nom = document.getElementById("nom").value;
             if (nom != "" && nom != " ") socket.emit('entree', nom);
          }
-
-         socket.on('entree', data => {
-            numJoueur = data.numJoueur;
-            console.log("Le serveur confirme mon entrée avec numJoueur="+numJoueur);
-            $("#btentree").toggle();
-            $("#listeJoueurs").text(data.nomsJoueurs);
-         });
-
-         socket.on('entreeAutreJoueur', data => {
-            console.log("Le serveur confirme l'entrée de "+data.nomJoueur);
-            $("#listeJoueurs").text(data.nomsJoueurs);
-         });
 
          function quitterLaPartie() {
             let nom = document.getElementById("nom").value;
@@ -40,37 +22,8 @@
            
             if (nom != "" && nom != " ") socket.emit('sortie', nom);
          }
-         socket.on('sortie', data => {
-            console.log("Le serveur confirme ma sortie");
-            numJoueur = -1;
-            document.getElementById("nom").value = "";
-            $("#btentree").toggle();
-            $("#listeJoueurs").text(data.nomsJoueurs);
-         });
 
-         socket.on('sortieAutreJoueur', data => {
-            console.log("Le serveur confirme la sortie de "+data.nomJoueur);   
-            numJoueur = data.numJoueur;
-            $("#listeJoueurs").text(data.nomsJoueurs);
-         });
-
-         function envoiMessage(input) {
-            console.log("Envoi du message :", input.value)
-            socket.emit("message", {'numJoueur':numJoueur, 'texte':input.value});
-         }
-         
-         socket.on('message', message => { 
-            console.log("Réception du message :", message);
-            let messagesPrecedents = $("#messages").val();
-            $("#messages").val(messagesPrecedents+'\n'+message);
-            $("#message").val("");
-         });
-
-         socket.on('messageServeur', message => {
-            console.log("Message serveur :", message);
-            $("#messageServeur").text(message); });
-
-         function creePointsHexagone(rayon) { //Calcul des coordonnées des six points d'un hexagone
+         function creePointsHexagone(rayon) { // Calcul des coordonnées des six points d'un hexagone
             var points = new Array();
             for (var i = 0; i < 6; ++i) {
                   var angle = i * Math.PI / 3;
@@ -80,8 +33,8 @@
             }
             return points;
          }
-   
-         function genereDamier(rayon, nbLignes, nbColonnes) {
+
+         function genereTerrain(rayon, nbLignes, nbColonnes) {
             let distance =  rayon - (Math.sin(1 * Math.PI / 3) * rayon); // distance entre deux hexagones
 
             d3.select("#tablier").append("svg").attr("id","svgTablier").attr("width", nbColonnes*1.33*2*rayon).attr("height",nbLignes*2*rayon);
@@ -113,7 +66,44 @@
                }
             }
          }
+         
+         socket.on('joueurs', nomsJoueurs => {
+            console.log("joueurs reçus du serveur : ");
+            console.dir(nomsJoueurs);
+            $("#listeJoueurs").text(nomsJoueurs);
+         });
 
+         socket.on('entree', data => {
+            numJoueur = data.numJoueur;
+            console.log("Le serveur confirme mon entrée avec numJoueur="+numJoueur);
+            $("#btentree").toggle();
+            $("#listeJoueurs").text(data.nomsJoueurs);
+         });
+
+         socket.on('entreeAutreJoueur', data => {
+            console.log("Le serveur confirme l'entrée de "+data.nomJoueur);
+            $("#listeJoueurs").text(data.nomsJoueurs);
+         });
+
+         socket.on('sortie', data => {
+            console.log("Le serveur confirme ma sortie");
+            numJoueur = -1;
+            document.getElementById("nom").value = "";
+            $("#btentree").toggle();
+            $("#listeJoueurs").text(data.nomsJoueurs);
+         });
+
+         socket.on('sortieAutreJoueur', data => {
+            console.log("Le serveur confirme la sortie de "+data.nomJoueur);   
+            numJoueur = data.numJoueur;
+            $("#listeJoueurs").text(data.nomsJoueurs);
+         });
+
+         socket.on('messageServeur', message => {
+            console.log("Message serveur :", message);
+            $("#messageServeur").text(message); 
+         });
+         
       </script>
   </head>
   <body>
@@ -130,18 +120,11 @@
       <hr/>
       
       <hr/>
-      <div id="jeu">
-         <div id="chat">
-            Votre message <input id="message" type="text" onChange="envoiMessage(this)"/> <br/>
-         <textarea id="messages" rows="20" cols="75"></textarea>
-         </div>
          <div id="hexagones">
-            <svg id="tablier" width="500" height="500">
+            <svg id="tablier" width="1200" height="1200">
          
             </svg>
          </div>
-         
       </div>
-      
   </body>
 </html>
