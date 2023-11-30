@@ -69,6 +69,10 @@
                }
             }
          }
+
+         function nbJoueurs(nbJoueurs){
+            socket.emit('nbJoueurs', nbJoueurs);
+         }
          
          window.addEventListener('load', (event) => {
             genereTerrain(rayon, nbLignes, nbColonnes);
@@ -117,6 +121,23 @@
       <div id ="joueurs">
          Joueurs : <label id="listeJoueurs"></label> <br/>
          Votre nom <input id="nom" type="text" />
+         <br>
+         Nombre de joueurs : <input type="number" name="nbJoueurs" id="nbJoueurs" min="1" max="4">
+         <br>
+         Nombre de tours : <input type="number" name="nbTours" id="nbTours" min="1" max="500">
+         <br>
+         Reproduction :
+         <br>
+         <input type="range" class="slider" name="reproduction" min="1" max="5" step="1" value="1">
+         <br><br>
+         Perception :
+         <br>
+         <input type="range" class="slider" name="perception" min="1" max="5" step="1" value="1">
+         <br><br>
+         Force :
+         <br>
+         <input type="range" class="slider" name="force" min="1" max="5" step="1" value="1">
+         <br><br>
          <button type="button" onClick="entrerDansLaPartie()">
             Entrer dans la partie </button>
          <button type="button" onClick="quitterLaPartie()">

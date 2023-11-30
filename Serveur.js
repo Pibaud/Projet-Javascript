@@ -10,8 +10,7 @@ app.get('/', (request, response) => {
     response.sendFile('Projet.html', {root: __dirname});
 });
 
-var nbJoueurs = 2;  // Peut être positionnée à n'importe quelle valeur
-var nbLignes = nbColonnes = 11;
+var nbJoueurs;
 var joueurs = [];
 var jeton = -1;
   
@@ -70,5 +69,9 @@ io.on('connection', (socket) => {
             console.log("Message à diffuser :", message)
             io.emit('message', message);
         }
+    });
+
+    socket.on('nbJoueurs', data =>{
+        nbJoueurs = data;
     });
 });
