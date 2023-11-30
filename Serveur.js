@@ -4,6 +4,8 @@ const http = require('http');
 const server = http.createServer(app);
 const io = new require("socket.io")(server)
 
+app.use(express.static('public'));
+
 app.get('/', (request, response) => {
     response.sendFile('Projet.html', {root: __dirname});
 });
