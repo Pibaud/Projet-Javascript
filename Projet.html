@@ -89,7 +89,8 @@
          });
          
          socket.on('creation',joueur => {
-            
+            $("#creerLaPartie").css("visibility","hidden");
+            $("#entrerDansLaPartie").css("visibility","visible");
          });
 
          socket.on('joueurs', nomsJoueurs => {
@@ -152,10 +153,10 @@
          <br>
          <input type="range" class="slider" id="force" name="force" min="1" max="5" step="1" value="1">
          <br><br>
-         <button type="button" onClick="creerLaPartie()">Créer la partie</button> <!-- si joueurs.length == 0 -->
-         <button type="button" onClick="entrerDansLaPartie()">        <!-- si joueurs.length != 0 (s'il n'est pas le premier joueur) -->
+         <button type="button" id="creerLaPartie" onClick="creerLaPartie()">Créer la partie</button> <!-- si joueurs.length == 0 -->
+         <button type="button" id="entrerDansLaPartie" onClick="entrerDansLaPartie()">        <!-- si joueurs.length != 0 (s'il n'est pas le premier joueur) -->
             Entrer dans la partie </button>
-         <button type="button" onClick="quitterLaPartie()">
+         <button type="button" id="quitterLaPartie" onClick="quitterLaPartie()">
             Quitter la partie </button> <br/>
       </div>
       <hr/>
