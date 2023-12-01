@@ -33,10 +33,11 @@ io.on('connection', (socket) => {
         joueur.set("force", data.force);
         console.log(joueur);
         joueurs.push(data.nom);
-        socket.emit('creation',joueur);
+        socket.broadcast.emit('creation',joueur);
     });
 
     socket.on('entree', nomJoueur => {
+        $("#quitterLaPartie").css("visibility","visible");
         console.log("Entrée dans la partie de "+nomJoueur);
         console.log(joueurs.length);
         if (joueurs.length < nbJoueurs)
