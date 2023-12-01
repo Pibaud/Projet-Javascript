@@ -21,7 +21,7 @@
             let reproduction = parseInt(document.getElementById("reproduction").value,10);
             let perception = parseInt(document.getElementById("perception").value,10);
             let force = parseInt(document.getElementById("force").value,10);
-            if (nom != "" && nom != " ") socket.emit('entree', {'nom':nom, 'nbJoueurs':nbJoueurs, 'nbTours':nbTours, 'reproduction':reproduction, 'perception':perception, 'force':force});
+            if (nom != "" && nom != " ") socket.emit('creation', {'nom':nom, 'nbJoueurs':nbJoueurs, 'nbTours':nbTours, 'reproduction':reproduction, 'perception':perception, 'force':force});
          }
 
          function entrerDansLaPartie() {  
@@ -88,6 +88,10 @@
             genereTerrain(rayon, nbLignes, nbColonnes);
          });
          
+         socket.on('creation',joueur => {
+            
+         });
+
          socket.on('joueurs', nomsJoueurs => {
             console.log("joueurs reçus du serveur : ");
             console.dir(nomsJoueurs);

@@ -11,6 +11,7 @@ app.get('/', (request, response) => {
 });
 
 var nbJoueurs;
+var nbTours;
 var joueurs = [];
 var jeton = -1;
   
@@ -19,6 +20,21 @@ server.listen(8888, () => {
 });
 
 io.on('connection', (socket) => {
+
+    socket.on('creation', data => {
+        console.log(data.nom+" crée la partie");
+        let joueur = new Map();
+        nbJoueurs = data.nbJoueurs;
+        nbTours = data.nbTours;
+        joueur.set("num", 0);
+        joueur.set("name", data.nom);
+        joueur.set("reproduction", data.reproduction);
+        joueur.set("perception", data.perception);
+        joueur.set("force", data.force);
+        console.log(joueur);
+        joueurs.push(data.nom);
+        socket.emit('creation',joueur);
+    });
 
     socket.on('entree', nomJoueur => {
         console.log("Entrée dans la partie de "+nomJoueur);
