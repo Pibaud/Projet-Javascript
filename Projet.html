@@ -81,14 +81,9 @@
                }
             }
          }
-
-         function nbJoueurs(nbJoueurs){
-            socket.emit('nbJoueurs', nbJoueurs);
-         }
          
          window.addEventListener('load', (event) => {
-            $("#entrerDansLaPartie").css("visibility", "hidden");
-            $("#quitterLaPartie").css("visibility", "hidden");
+            socket.emit('demandeNbJoueurs');
             genereTerrain(rayon, nbLignes, nbColonnes);
          });
          
@@ -102,6 +97,21 @@
             console.log("joueurs reçus du serveur : ");
             console.dir(nomsJoueurs);
             $("#listeJoueurs").text(nomsJoueurs);
+         });
+
+         socket.on('nbJoueurs',nbJoueurs =>{
+            if(nbJoueurs > 0){
+               $("#creerLaPartie").css("visibility","hidden");
+               $("#quitterLaPartie").css("visibility","hidden");
+               $("#entrerDansLaPartie").css("visibility","visible");
+               $("#nbJoueurs").css("visibility","hidden");
+               $("#nbTours").css("visibility","hidden");
+            }
+            else{
+               $("#creerLaPartie").css("visibility","visible");
+               $("#quitterLaPartie").css("visibility","hidden");
+               $("#entrerDansLaPartie").css("visibility","hidden");
+            }
          });
 
          socket.on('entree', data => {
@@ -142,9 +152,11 @@
          Joueurs : <label id="listeJoueurs"></label> <br/>
          Votre nom <input id="nom" type="text" />
          <br>
-         Nombre de joueurs : <input type="number" name="nbJoueurs" id="nbJoueurs" min="1" max="4">
+         <span id="nbJoueurs">Nombre de joueurs : </span>
+         <input type="number" name="nbJoueurs" id="nbJoueurs" min="1" max="4">
          <br>
-         Nombre de tours : <input type="number" name="nbTours" id="nbTours" min="1" max="500">
+         <span id="nbTours">Nombre de tours : </span>
+         <input type="number" name="nbTours" id="nbTours" min="1" max="500">
          <br>
          Reproduction :
          <br>
@@ -171,7 +183,7 @@
       <hr/>
          <div id="hexagones">
             <svg id="tablier" width="1200" height="1200">
-         
+            
             </svg>
          </div>
       </div>

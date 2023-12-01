@@ -82,7 +82,7 @@ io.on('connection', (socket) => {
         else socket.emit('messageServeur', 'Joueur inconnu');
     });
 
-    socket.on('nbJoueurs', data =>{
-        nbJoueurs = data;
-    });
+    socket.on('demandeNbJoueurs', function(){
+        socket.emit('nbJoueurs', joueurs.length);
+    })
 });
