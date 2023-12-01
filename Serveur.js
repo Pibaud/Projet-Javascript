@@ -37,7 +37,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('entree', nomJoueur => {
-        $("#quitterLaPartie").css("visibility","visible");
+        $("#quitterLaPartie").css("display","inline");
         console.log("Entrée dans la partie de "+nomJoueur);
         console.log(joueurs.length);
         if (joueurs.length < nbJoueurs)

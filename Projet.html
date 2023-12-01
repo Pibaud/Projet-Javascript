@@ -21,8 +21,8 @@
             let reproduction = parseInt(document.getElementById("reproduction").value,10);
             let perception = parseInt(document.getElementById("perception").value,10);
             let force = parseInt(document.getElementById("force").value,10);
-            $("#creerLaPartie").css("visibility","hidden");
-            $("#entrerDansLaPartie").css("visibility","hidden");
+            $("#creerLaPartie").css("display","none");
+            $("#entrerDansLaPartie").css("display","none");
             if (nom != "" && nom != " ") socket.emit('creation', {'nom':nom, 'nbJoueurs':nbJoueurs, 'nbTours':nbTours, 'reproduction':reproduction, 'perception':perception, 'force':force});
          }
 
@@ -88,9 +88,9 @@
          });
          
          socket.on('creation',joueur => {
-            $("#creerLaPartie").css("visibility","hidden");
-            $("#quitterLaPartie").css("visibility","hidden");
-            $("#entrerDansLaPartie").css("visibility","visible");
+            $("#creerLaPartie").css("display","none");
+            $("#quitterLaPartie").css("display","none");
+            $("#entrerDansLaPartie").css("display","inline");
          });
 
          socket.on('joueurs', nomsJoueurs => {
@@ -101,16 +101,15 @@
 
          socket.on('nbJoueurs',nbJoueurs =>{
             if(nbJoueurs > 0){
-               $("#creerLaPartie").css("visibility","hidden");
-               $("#quitterLaPartie").css("visibility","hidden");
-               $("#entrerDansLaPartie").css("visibility","visible");
-               $("#nbJoueurs").css("visibility","hidden");
-               $("#nbTours").css("visibility","hidden");
+               $("#creerLaPartie").css("display","none");
+               $("#quitterLaPartie").css("display","none");
+               $("#entrerDansLaPartie").css("display","inline");
+               $("#infosCreateur").css("display","none");
             }
             else{
-               $("#creerLaPartie").css("visibility","visible");
-               $("#quitterLaPartie").css("visibility","hidden");
-               $("#entrerDansLaPartie").css("visibility","hidden");
+               $("#creerLaPartie").css("display","inline");
+               $("#quitterLaPartie").css("display","none");
+               $("#entrerDansLaPartie").css("display","none");
             }
          });
 
@@ -152,12 +151,12 @@
          Joueurs : <label id="listeJoueurs"></label> <br/>
          Votre nom <input id="nom" type="text" />
          <br>
-         <span id="nbJoueurs">Nombre de joueurs : </span>
-         <input type="number" name="nbJoueurs" id="nbJoueurs" min="1" max="4">
-         <br>
-         <span id="nbTours">Nombre de tours : </span>
-         <input type="number" name="nbTours" id="nbTours" min="1" max="500">
-         <br>
+         <div id="infosCreateur">
+            Nombre de joueurs :<input type="number" name="nbJoueurs" id="nbJoueurs" min="1" max="4">
+            <br>
+            Nombre de tours : <input type="number" name="nbTours" id="nbTours" min="1" max="500">
+            <br>
+         </div>
          Reproduction :
          <br>
          <input type="range" class="slider" id="reproduction" name="reproduction" min="1" max="5" step="1" value="1">
