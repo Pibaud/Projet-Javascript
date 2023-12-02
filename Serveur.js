@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
-const io = new require("socket.io")(server)
+const io = require("socket.io")(server);
 
 app.use(express.static('public'));
 
@@ -32,36 +32,39 @@ io.on('connection', (socket) => {
         joueur.set("perception", data.perception);
         joueur.set("force", data.force);
         console.log(joueur);
-        joueurs.push(data.nom);
+        joueurs.push(joueur);
+        socket.emit('messageServeur', "1/"+nbJoueurs+" joueurs. En attente...");
         socket.broadcast.emit('creation',joueur);
-        if (joueurs.length == nbJoueurs) {
-            jeton = 0;
-            console.log("Le jeton passe à 0, la partie peut commencer");
-            Simulation(joueurs);
-        }
     });
 
-    socket.on('entree', nomJoueur => {
-        console.log("Entrée dans la partie de "+nomJoueur);
+    socket.on('entree', data => {
+        console.log("Entrée dans la partie de "+data.nom);
         console.log(joueurs.length);
         if (joueurs.length < nbJoueurs)
-            if (!joueurs.includes(nomJoueur)) {
+            if (!joueurs.some(joueur => joueur.get('name') === data.nom)) {
                 var joueur = new Map();
-                joueur.set("name", nomJoueur);
+                joueur.set("num", joueurs.length);
+                joueur.set("name", data.nom);
+                joueur.set("reproduction", data.reproduction);
+                joueur.set("perception", data.perception);
+                joueur.set("force", data.force);
                 console.log(joueur);
-                joueurs.push(nomJoueur);
-                if (joueurs.length == nbJoueurs) {
+                joueurs.push(joueur);
+                io.emit('messageServeur', joueurs.length+"/"+nbJoueurs+" joueurs. En attente...");
+                if (joueurs.length == nbJoueurs){
                     jeton = 0;
                     console.log("Le jeton passe à 0, la partie peut commencer");
+                    io.emit('messageServeur', 'La partie commence');
+                    io.emit('partie');
                 }
                 let nomsJoueurs = "";
-                for (let nom of joueurs) nomsJoueurs += nom+" ";
-                socket.emit('entree', {'nomJoueur':nomJoueur,
+                for (let joueur of joueurs) nomsJoueurs += joueur.get('name')+" ";
+                socket.emit('entree', {'nomJoueur':data.nom,
                                        'numJoueur':joueurs.length-1,
                                        'nomsJoueurs':nomsJoueurs});
                 if (joueurs.length > 1)
                     socket.broadcast.emit('entreeAutreJoueur',
-                                        {'nomJoueur':nomJoueur,
+                                        {'nomJoueur':data.nom,
                                         'nomsJoueurs':nomsJoueurs});
             }
             else socket.emit('messageServeur', 'Nom de joueur déjà enregistré');
