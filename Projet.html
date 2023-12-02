@@ -23,12 +23,16 @@
             let force = parseInt(document.getElementById("force").value,10);
             $("#creerLaPartie").css("display","none");
             $("#entrerDansLaPartie").css("display","none");
+            $("#quitterLaPartie").css("display","inline");
             if (nom != "" && nom != " ") socket.emit('creation', {'nom':nom, 'nbJoueurs':nbJoueurs, 'nbTours':nbTours, 'reproduction':reproduction, 'perception':perception, 'force':force});
          }
 
          function entrerDansLaPartie() {  
             let nom = document.getElementById("nom").value;
-            if (nom != "" && nom != " ") socket.emit('entree', nom);
+            if (nom != "" && nom != " "){
+               $("#quitterLaPartie").css("display","inline");
+               socket.emit('entree', nom);
+            }
          }
 
          function quitterLaPartie() {
@@ -91,20 +95,23 @@
             $("#creerLaPartie").css("display","none");
             $("#quitterLaPartie").css("display","none");
             $("#entrerDansLaPartie").css("display","inline");
+            $("#infosCreateur").css("display","none");
          });
-
+         
          socket.on('joueurs', nomsJoueurs => {
             console.log("joueurs reçus du serveur : ");
             console.dir(nomsJoueurs);
             $("#listeJoueurs").text(nomsJoueurs);
          });
 
-         socket.on('nbJoueurs',nbJoueurs =>{
-            if(nbJoueurs > 0){
+         socket.on('nbJoueurs',data =>{
+            console.log(data.joueurs.length);
+            if(data.joueurs.length > 0){
                $("#creerLaPartie").css("display","none");
                $("#quitterLaPartie").css("display","none");
                $("#entrerDansLaPartie").css("display","inline");
                $("#infosCreateur").css("display","none");
+               $("#attente").text(data.nbActuel+"/"+data.nombreMax+" joueurs. En attente...");
             }
             else{
                $("#creerLaPartie").css("display","inline");
@@ -116,7 +123,6 @@
          socket.on('entree', data => {
             numJoueur = data.numJoueur;
             console.log("Le serveur confirme mon entrée avec numJoueur="+numJoueur);
-            $("#btentree").toggle();
             $("#listeJoueurs").text(data.nomsJoueurs);
          });
 
@@ -129,7 +135,6 @@
             console.log("Le serveur confirme ma sortie");
             numJoueur = -1;
             document.getElementById("nom").value = "";
-            $("#btentree").toggle();
             $("#listeJoueurs").text(data.nomsJoueurs);
          });
 
@@ -170,10 +175,9 @@
          <input type="range" class="slider" id="force" name="force" min="1" max="5" step="1" value="1">
          <br><br>
          <button type="button" id="creerLaPartie" onClick="creerLaPartie()">Créer la partie</button>
-         <button type="button" id="entrerDansLaPartie" onClick="entrerDansLaPartie()">
-            Entrer dans la partie </button>
-         <button type="button" id="quitterLaPartie" onClick="quitterLaPartie()">
-            Quitter la partie </button> <br/>
+         <button type="button" id="entrerDansLaPartie" onClick="entrerDansLaPartie()">Entrer dans la partie</button>
+         <button type="button" id="quitterLaPartie" onClick="quitterLaPartie()">Quitter la partie</button> <br/>
+         <span id="attente"></span>
       </div>
       <hr/>
       Message du serveur : <label id="messageServeur"></label>

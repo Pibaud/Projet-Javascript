@@ -34,10 +34,14 @@ io.on('connection', (socket) => {
         console.log(joueur);
         joueurs.push(data.nom);
         socket.broadcast.emit('creation',joueur);
+        if (joueurs.length == nbJoueurs) {
+            jeton = 0;
+            console.log("Le jeton passe à 0, la partie peut commencer");
+            Simulation(joueurs);
+        }
     });
 
     socket.on('entree', nomJoueur => {
-        $("#quitterLaPartie").css("display","inline");
         console.log("Entrée dans la partie de "+nomJoueur);
         console.log(joueurs.length);
         if (joueurs.length < nbJoueurs)
@@ -83,6 +87,6 @@ io.on('connection', (socket) => {
     });
 
     socket.on('demandeNbJoueurs', function(){
-        socket.emit('nbJoueurs', joueurs.length);
-    })
+        socket.emit('nbJoueurs', {'nombreMax':nbJoueurs,'nbActuel':joueurs.length});
+    });
 });
