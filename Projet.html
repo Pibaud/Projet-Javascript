@@ -94,8 +94,7 @@
             console.log("demande de joueurs ...");
             socket.emit('demandeNbJoueurs');
             genereTerrain(rayon, nbLignes, nbColonnes);
-            $("#tablier").css("display","none");
-
+            document.getElementById("tablier").style.display = "none";
          });
          
          socket.on('creation',data => {
@@ -156,8 +155,8 @@
             $("#messageServeur").text(message); 
          });
 
-         soket.on('partie', data =>{
-            $("#tablier").css("display","inline");
+         socket.on('partie', data =>{
+            document.getElementById("tablier").style.display = "inline";
          });
          
       </script>
