@@ -4,6 +4,8 @@ const http = require('http');
 const server = http.createServer(app);
 const io = require("socket.io")(server);
 
+app.use('/public', express.static('public', { 'extensions': ['css'] }));
+
 app.use(express.static('public'));
 
 app.get('/', (request, response) => {
@@ -68,7 +70,7 @@ io.on('connection', (socket) => {
                                         'nomsJoueurs':nomsJoueurs});
             }
             else socket.emit('messageServeur', 'Nom de joueur déjà enregistré');
-        else socket.emit('messageServeur', 'Nombre de joueurs déjà atteint !');
+        else socket.emit('messageServeur', 'Nombre de joueurs maximal déjà atteint !');
     });
 
     socket.on('sortie', nomJoueur => {
