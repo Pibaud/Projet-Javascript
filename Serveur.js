@@ -68,7 +68,7 @@ io.on('connection', (socket) => {
                     jeton = 0;
                     console.log("Le jeton passe à 0, la partie peut commencer");
                     io.emit('messageServeur', 'La partie commence');
-                    io.emit('partie', joueurs.length);
+                    io.emit('partie', joueurs);
                 }
                 let nomsJoueurs = "";
                 for (let joueur of joueurs) nomsJoueurs += joueur.get('name')+" ";

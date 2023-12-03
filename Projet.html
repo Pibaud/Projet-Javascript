@@ -77,7 +77,6 @@
                      if (h == 0) d += "M"+x+","+y+" L";
                      else        d +=     x+","+y+" ";
                   }
-                  console.log("h"+(ligne*nbLignes+colonne));
                   d += "Z";
                   d3.select("#svgTablier")
                      .append("path")
@@ -91,18 +90,23 @@
          }
          
          function colorationTerrain(joueurs){
+            console.dir(joueurs);
             let nbEspèces = joueurs.length;
             if(nbEspèces >= 1){
                d3.select("h55").attr("fill",joueurs[0].couleur);
+               console.log("1 case colorée");
             }
             if(nbEspèces >= 2){
                d3.select("h65").attr("fill",joueurs[1].couleur);
+               console.log("2 case colorée");
             }
             if(nbEspèces >= 3){
                d3.select("h115").attr("fill",joueurs[2].couleur);
+               console.log("3 case colorée");
             }
             if(nbEspèces == 4){
                d3.select("h5").attr("fill",joueurs[3].couleur);
+               console.log("4 case colorée");
             }
          }
 
@@ -173,7 +177,7 @@
          });
 
          socket.on('partie', joueurs =>{
-            colorationTerrain(joueurs.length);
+            colorationTerrain(joueurs);
             document.getElementById("tablier").style.display = "inline";
          });
          
