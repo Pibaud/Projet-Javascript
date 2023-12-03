@@ -90,23 +90,19 @@
          }
          
          function colorationTerrain(joueurs){
-            console.dir(joueurs);
             let nbEspèces = joueurs.length;
+            console.log(joueurs[0]);
             if(nbEspèces >= 1){
-               d3.select("h55").attr("fill",joueurs[0].couleur);
-               console.log("1 case colorée");
+               d3.select("#h55").attr("fill",joueurs[0].couleur);
             }
             if(nbEspèces >= 2){
-               d3.select("h65").attr("fill",joueurs[1].couleur);
-               console.log("2 case colorée");
+               d3.select("#h65").attr("fill",joueurs[1].couleur);
             }
             if(nbEspèces >= 3){
-               d3.select("h115").attr("fill",joueurs[2].couleur);
-               console.log("3 case colorée");
+               d3.select("#h115").attr("fill",joueurs[2].couleur);
             }
             if(nbEspèces == 4){
-               d3.select("h5").attr("fill",joueurs[3].couleur);
-               console.log("4 case colorée");
+               d3.select("#h5").attr("fill",joueurs[3].couleur);
             }
          }
 

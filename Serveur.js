@@ -41,6 +41,7 @@ io.on('connection', (socket) => {
             jeton = 0;
             console.log("Le jeton passe à 0, la partie peut commencer");
             socket.emit('messageServeur', 'La partie commence');
+            console.log(joueurs[0].couleur);
             socket.emit('partie', joueurs);
         }
         else{
