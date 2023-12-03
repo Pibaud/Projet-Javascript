@@ -77,6 +77,7 @@
                      if (h == 0) d += "M"+x+","+y+" L";
                      else        d +=     x+","+y+" ";
                   }
+                  console.log("h"+(ligne*nbLignes+colonne));
                   d += "Z";
                   d3.select("#svgTablier")
                      .append("path")
@@ -89,6 +90,22 @@
             }
          }
          
+         function colorationTerrain(joueurs){
+            let nbEspèces = joueurs.length;
+            if(nbEspèces >= 1){
+               d3.select("h55").attr("fill",joueurs[0].couleur);
+            }
+            if(nbEspèces >= 2){
+               d3.select("h65").attr("fill",joueurs[1].couleur);
+            }
+            if(nbEspèces >= 3){
+               d3.select("h115").attr("fill",joueurs[2].couleur);
+            }
+            if(nbEspèces == 4){
+               d3.select("h5").attr("fill",joueurs[3].couleur);
+            }
+         }
+
          window.addEventListener('load', (event) => {
             $("#tousRépartis").css("display","none");
             console.log("demande de joueurs ...");
@@ -155,7 +172,8 @@
             $("#messageServeur").text(message); 
          });
 
-         socket.on('partie', data =>{
+         socket.on('partie', joueurs =>{
+            colorationTerrain(joueurs.length);
             document.getElementById("tablier").style.display = "inline";
          });
          
