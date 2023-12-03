@@ -1,9 +1,13 @@
-#graduation {
+#axe {
+    width: 135px; /* Ajustez la largeur selon vos besoins */
+  }
+  
+  #graduation {
     display: flex;
-    justify-content: space-between; /* Espacement équitable entre les spans */
-    margin-top: 10px; /* Marge au-dessus des spans */
+    justify-content: space-between;
   }
   
   #graduation span {
-    margin: 0 10px; /* Marge à gauche et à droite de chaque span */
-  }  
+    margin: 0 7px;
+  }
+  

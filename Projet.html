@@ -21,10 +21,16 @@
             let reproduction = parseInt(document.getElementById("reproduction").value,10);
             let perception = parseInt(document.getElementById("perception").value,10);
             let force = parseInt(document.getElementById("force").value,10);
-            $("#creerLaPartie").css("display","none");
-            $("#entrerDansLaPartie").css("display","none");
-            $("#quitterLaPartie").css("display","inline");
-            if (nom != "" && nom != " ") socket.emit('creation', {'nom':nom, 'nbJoueurs':nbJoueurs, 'nbTours':nbTours, 'reproduction':reproduction, 'perception':perception, 'force':force});
+            if (nom != "" && nom != " " && (reproduction + perception + force) <= 9){
+               $("#creerLaPartie").css("display","none");
+               $("#entrerDansLaPartie").css("display","none");
+               $("#quitterLaPartie").css("display","inline");
+               $("#tousRépartis").css("display","none");
+               socket.emit('creation', {'nom':nom, 'nbJoueurs':nbJoueurs, 'nbTours':nbTours, 'reproduction':reproduction, 'perception':perception, 'force':force});
+            }
+            else{
+               $("#tousRépartis").css("display","inline");
+            }
          }
 
          function entrerDansLaPartie() {  
@@ -79,18 +85,12 @@
                      .attr("fill", "white")
                      .attr("class", "hexagoneDamier")
                      .attr("id", "h"+(ligne*nbLignes+colonne)) // car un id doit commencer par une lettre
-                     .on("click", function(d) {
-                        let numHexagone = parseInt(d3.select(this).attr('id').substring(1));
-                        if (numJoueur == jeton) {
-                           console.log("clic sur", numHexagone);
-                           socket.emit('pion', {'position':numHexagone,'numJoueur':numJoueur});
-                        };
-                     });
                }
             }
          }
          
          window.addEventListener('load', (event) => {
+            $("#tousRépartis").css("display","none");
             console.log("demande de joueurs ...");
             socket.emit('demandeNbJoueurs');
             genereTerrain(rayon, nbLignes, nbColonnes);
@@ -151,7 +151,7 @@
          });
 
          socket.on('messageServeur', message => {
-            console.log("Message serveur :", message);
+            console.log("Message serveur : ", message);
             $("#messageServeur").text(message); 
          });
 
@@ -163,36 +163,57 @@
   </head>
   <body>
       <div id ="joueurs">
-         Joueurs : <label id="listeJoueurs"></label> <br/>
+         Joueurs : <label id="listeJoueurs"></label><br><br/>
          Votre nom <input id="nom" type="text" />
-         <br>
+         <br><br>
          <div id="infosCreateur">
-            Nombre de joueurs :<input type="number" name="nbJoueurs" id="nbJoueurs" min="1" max="4">
-            <br>
+            Nombre de joueurs : <input type="number" name="nbJoueurs" id="nbJoueurs" min="1" max="4">
+            <br><br>
             Nombre de tours : <input type="number" name="nbTours" id="nbTours" min="1" max="500">
-            <br>
+            <br><br>
          </div>
-         Répartissez 9 points entre Reproduction, Perception et Force. <span id="pointsRestants"></span> points resants.
-         <br>
+         Répartissez 9 points entre Reproduction, Perception et Force.
+         <span id="tousRépartis"><br><br>Vous avez dépassé le nombre maximal de points !</span>
+         <br><br>
          Reproduction :
          <br>
-         <input type="range" class="slider" id="reproduction" name="reproduction" min="1" max="5" step="1" value="1">
-         <br><br>
+         <div id="axe">
+            <input type="range" class="slider" id="reproduction" name="reproduction" min="1" max="5" step="1" value="1"><br>
+            <div id="graduation">
+               <span>1</span>
+               <span>2</span>
+               <span>3</span>
+               <span>4</span>
+               <span>5</span>
+            </div>
+         </div>
+         <br>
          Perception :
          <br>
-         <input type="range" class="slider" id="perception" name="perception" min="1" max="5" step="1" value="1"><br>
-         <div id="graduation">
-            <span>1</span>
-            <span>2</span>
-            <span>3</span>
-            <span>4</span>
-            <span>5</span>
-          </div>
-         <br><br>
+         <div id="axe">
+            <input type="range" class="slider" id="perception" name="perception" min="1" max="5" step="1" value="1"><br>
+            <div id="graduation">
+               <span>1</span>
+               <span>2</span>
+               <span>3</span>
+               <span>4</span>
+               <span>5</span>
+            </div>
+         </div>
+         <br>
          Force :
          <br>
-         <input type="range" class="slider" id="force" name="force" min="1" max="5" step="1" value="1">
-         <br><br>
+         <div id="axe">
+            <input type="range" class="slider" id="force" name="force" min="1" max="5" step="1" value="1"><br>
+            <div id="graduation">
+               <span>1</span>
+               <span>2</span>
+               <span>3</span>
+               <span>4</span>
+               <span>5</span>
+            </div>
+         </div>
+         <br>
          <button type="button" id="creerLaPartie" onClick="creerLaPartie()">Créer la partie</button>
          <button type="button" id="entrerDansLaPartie" onClick="entrerDansLaPartie()">Entrer dans la partie</button>
          <button type="button" id="quitterLaPartie" onClick="quitterLaPartie()">Quitter la partie</button> <br/>

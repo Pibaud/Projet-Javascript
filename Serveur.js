@@ -35,6 +35,12 @@ io.on('connection', (socket) => {
         joueur.set("force", data.force);
         console.log(joueur);
         joueurs.push(joueur);
+        if(data.nbJoueurs == 1){
+            jeton = 0;
+            console.log("Le jeton passe à 0, la partie peut commencer");
+            socket.emit('messageServeur', 'La partie commence');
+            socket.emit('partie');
+        }
         socket.emit('messageServeur', "1/"+nbJoueurs+" joueurs. En attente...");
         socket.broadcast.emit('creation',joueur);
     });
