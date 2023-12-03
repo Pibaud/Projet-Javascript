@@ -1,14 +1,13 @@
-#reproduction{
-    text-align: center;
-}
-
-#graduation {
+#axe {
+    width: 135px; /* Ajustez la largeur selon vos besoins */
+  }
+  
+  #graduation {
     display: flex;
     justify-content: space-between;
-    margin-top: 10px;
-}
-
-.slider {
-    width: 80%;
-    margin: 0 auto;
-}
+  }
+  
+  #graduation span {
+    margin: 0 7px;
+  }
+  
