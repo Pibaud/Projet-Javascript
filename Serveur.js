@@ -15,6 +15,11 @@ app.get('/', (request, response) => {
 var nbJoueurs;
 var nbTours;
 var joueurs = [];
+var c1 = [];
+var c2 = [];
+var c3 = [];
+var c4 = [];
+var toutesCréatures = [c1, c2, c3, c4];
 var jeton = -1;
   
 server.listen(8888, () => {
@@ -32,7 +37,49 @@ function nbAleatoire() {
     else{
        return 3;
     }
- }
+}
+
+function partie(tours){
+    var cases = [];                   // création des biomes du terrain
+    for (i = 0; i < 169; i ++){
+        let couleur = nbAleatoire();
+        switch (couleur){
+            case 1:
+                cases[i] = "#3498DB"; // eau
+                break;
+
+            case 2:
+                cases[i] = "#8BC34A"; // prairie
+                break;
+
+            case 3:
+                cases[i] = "#707B7C"; // rocher
+                break;
+        }
+    }
+    io.emit('cases', {'cases':cases, 'nbJoueurs':nbJoueurs}); // envoi des informations du terrain initial
+    for (i = 0; i < nbJoueurs; i++){ // création de la liste de créatures de chaque joueur
+        let M = new Map(); 
+        let F = new Map();
+        M.set("sexe","M");
+        M.set("reproduction", joueurs[i].get("reproduction"));
+        M.set("perception", joueurs[i].get("perception"));
+        M.set("force", joueurs[i].get("force"));
+        M.set("satiete", 10);
+        M.set("hydratation", 10);
+        F.set("sexe","F");
+        F.set("reproduction", joueurs[i].get("reproduction"));
+        F.set("perception", joueurs[i].get("perception"));
+        F.set("force", joueurs[i].get("force"));
+        F.set("satiete", 10);
+        F.set("hydratation", 10);
+        toutesCréatures[i].push(M);
+        toutesCréatures[i].push(F);
+        console.log("c1 : ",c1);
+        console.log("c2 : ",c2);
+    }
+     //faire apparaître les créatures M/F (M = carré et F = triangle)
+}
 
 io.on('connection', (socket) => {
 
@@ -50,9 +97,8 @@ io.on('connection', (socket) => {
         joueurs.push(joueur);
         if(data.nbJoueurs == 1){
             jeton = 0;
-            console.log("Le jeton passe à 0, la partie peut commencer");
             socket.emit('messageServeur', 'La partie commence');
-            socket.emit('partie', joueurs);
+            partie(nbTours);
         }
         else{
             socket.emit('messageServeur', "1/"+nbJoueurs+" joueurs. En attente...");
@@ -61,8 +107,6 @@ io.on('connection', (socket) => {
     });
 
     socket.on('entree', data => {
-        console.log("Entrée dans la partie de "+data.nom);
-        console.log(joueurs.length);
         if (joueurs.length < nbJoueurs)
             if (!joueurs.some(joueur => joueur.get('name') === data.nom)) {
                 var joueur = new Map();
@@ -76,9 +120,8 @@ io.on('connection', (socket) => {
                 io.emit('messageServeur', joueurs.length+"/"+nbJoueurs+" joueurs. En attente...");
                 if (joueurs.length == nbJoueurs){
                     jeton = 0;
-                    console.log("Le jeton passe à 0, la partie peut commencer");
                     io.emit('messageServeur', 'La partie commence');
-                    io.emit('partie', joueurs);
+                    partie(nbTours);
                 }
                 let nomsJoueurs = "";
                 for (let joueur of joueurs) nomsJoueurs += joueur.get('name')+" ";

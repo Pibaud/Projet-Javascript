@@ -9,7 +9,7 @@
       <script> var socket = io(); </script>
       <script>
 
-         var nbLignes = nbColonnes = 11;
+         var nbLignes = nbColonnes = 13;
          var rayon = 35;
          var numJoueur = -1;
          const nbMaxJoueurs = 4;
@@ -89,37 +89,21 @@
             }
          }
 
-         
-         
-         function colorationTerrain(data){
-            for (i = 0; i < 121; i ++){
-               let couleur = nbAleatoire();
-               switch (couleur){
-                  case 1:
-                     d3.select("#h"+i).attr("fill","#3498DB"); // eau
-                     break;
-
-                  case 2:
-                     d3.select("#h"+i).attr("fill","#8BC34A"); // prairie
-                     break;
-
-                  case 3:
-                     d3.select("#h"+i).attr("fill","#707B7C"); // rocher
-                     break;
-               }
+         function colorationTerrain(cases, nbJoueurs){
+            for (i = 0; i < 169; i ++){                     // coloration des biomes
+               d3.select("#h"+i).attr("fill",cases[i]);
             }
-            let nbEspèces = joueurs.length;
-            if(nbEspèces >= 1){
-               d3.select("#h55").attr("fill","#FF003B");
+            if(nbJoueurs >= 1){                             // coloration des 4 tanières
+               d3.select("#h78").attr("fill","#FF003B"); 
             }
-            if(nbEspèces >= 2){
-               d3.select("#h65").attr("fill","#C400FF");
+            if(nbJoueurs >= 2){
+               d3.select("#h90").attr("fill","#C400FF");
             }
-            if(nbEspèces >= 3){
-               d3.select("#h115").attr("fill","#F1C40F");
+            if(nbJoueurs >= 3){
+               d3.select("#h162").attr("fill","#F1C40F");
             }
-            if(nbEspèces == 4){
-               d3.select("#h5").attr("fill","#FF8BF1");
+            if(nbJoueurs == 4){
+               d3.select("#h6").attr("fill","#FF8BF1");
             }
          }
 
@@ -189,8 +173,8 @@
             $("#messageServeur").text(message); 
          });
 
-         socket.on('partie', joueurs =>{
-            colorationTerrain(joueurs);
+         socket.on('cases', data =>{
+            colorationTerrain(data.cases, data.nbJoueurs);
             document.getElementById("tablier").style.display = "inline";
          });
          
