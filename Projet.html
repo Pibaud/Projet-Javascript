@@ -88,21 +88,38 @@
                }
             }
          }
+
          
-         function colorationTerrain(joueurs){
+         
+         function colorationTerrain(data){
+            for (i = 0; i < 121; i ++){
+               let couleur = nbAleatoire();
+               switch (couleur){
+                  case 1:
+                     d3.select("#h"+i).attr("fill","#3498DB"); // eau
+                     break;
+
+                  case 2:
+                     d3.select("#h"+i).attr("fill","#8BC34A"); // prairie
+                     break;
+
+                  case 3:
+                     d3.select("#h"+i).attr("fill","#707B7C"); // rocher
+                     break;
+               }
+            }
             let nbEspèces = joueurs.length;
-            console.log(joueurs[0]);
             if(nbEspèces >= 1){
-               d3.select("#h55").attr("fill",joueurs[0].couleur);
+               d3.select("#h55").attr("fill","#FF003B");
             }
             if(nbEspèces >= 2){
-               d3.select("#h65").attr("fill",joueurs[1].couleur);
+               d3.select("#h65").attr("fill","#C400FF");
             }
             if(nbEspèces >= 3){
-               d3.select("#h115").attr("fill",joueurs[2].couleur);
+               d3.select("#h115").attr("fill","#F1C40F");
             }
             if(nbEspèces == 4){
-               d3.select("#h5").attr("fill",joueurs[3].couleur);
+               d3.select("#h5").attr("fill","#FF8BF1");
             }
          }
 

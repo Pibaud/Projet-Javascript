@@ -16,11 +16,23 @@ var nbJoueurs;
 var nbTours;
 var joueurs = [];
 var jeton = -1;
-const couleurs = ["#E74C3C","#9B59B6","#F1C40F","#FF8BF1"];
   
 server.listen(8888, () => {
     console.log('Le serveur écoute sur le port 8888');
 });
+
+function nbAleatoire() {
+    var x = Math.random() * 100;
+    if (x < 15){
+       return 1;
+    }
+    else if (x < 50){
+       return 2;
+    }
+    else{
+       return 3;
+    }
+ }
 
 io.on('connection', (socket) => {
 
@@ -31,7 +43,6 @@ io.on('connection', (socket) => {
         nbTours = data.nbTours;
         joueur.set("num", 0);
         joueur.set("name", data.nom);
-        joueur.set("couleur", "#E74C3C");
         joueur.set("reproduction", data.reproduction);
         joueur.set("perception", data.perception);
         joueur.set("force", data.force);
@@ -41,7 +52,6 @@ io.on('connection', (socket) => {
             jeton = 0;
             console.log("Le jeton passe à 0, la partie peut commencer");
             socket.emit('messageServeur', 'La partie commence');
-            console.log(joueurs[0].couleur);
             socket.emit('partie', joueurs);
         }
         else{
@@ -58,7 +68,6 @@ io.on('connection', (socket) => {
                 var joueur = new Map();
                 joueur.set("num", joueurs.length);
                 joueur.set("name", data.nom);
-                joueur.set("couleur", couleurs[joueurs.length]);
                 joueur.set("reproduction", data.reproduction);
                 joueur.set("perception", data.perception);
                 joueur.set("force", data.force);
