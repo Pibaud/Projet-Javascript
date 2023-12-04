@@ -14,6 +14,7 @@ app.get('/', (request, response) => {
 
 var nbJoueurs;
 var nbTours;
+const couleurs = ["#FF003B", "#C400FF", "#F1C40F", "#FF8BF1"];
 var joueurs = [];
 var c1 = [];
 var c2 = [];
@@ -61,24 +62,43 @@ function partie(){
     for (i = 0; i < nbJoueurs; i++){ // création de la liste de créatures de chaque joueur
         let M = new Map(); 
         let F = new Map();
+        let pos = [];          // pos [0,0] définit l'orgine qui correspond à l'hexagone le plus à gauche de la ligne la plus basse (p[colonne, ligne])
+        switch (i){
+            case 0:
+                pos = [0,6];
+                break;
+            case 1:
+                pos = [12,6];
+                break;
+            case 2:
+                pos = [6,0];
+                break;
+            case 3:
+                pos = [6,12];
+                break;
+        }
         M.set("sexe","M");
+        M.set("couleur", couleurs[i]);
         M.set("reproduction", joueurs[i].get("reproduction"));
         M.set("perception", joueurs[i].get("perception"));
         M.set("force", joueurs[i].get("force"));
         M.set("satiete", 10);
         M.set("hydratation", 10);
+        M.set("position", pos);
         F.set("sexe","F");
+        F.set("couleur", couleurs[i]);
         F.set("reproduction", joueurs[i].get("reproduction"));
         F.set("perception", joueurs[i].get("perception"));
         F.set("force", joueurs[i].get("force"));
         F.set("satiete", 10);
         F.set("hydratation", 10);
+        F.set("position", pos);
         toutesCréatures[i].push(M);
         toutesCréatures[i].push(F);
-        console.log("c1 : ",c1);
-        console.log("c2 : ",c2);
     }
     for (i = 1; i < nbTours; i ++){
+
+        socket.emit('nouvellePosition', )
         //faire apparaître les créatures M/F (M = carré et F = triangle)
         //utiliser le jeton
         //décrémenter satiété hydratation
@@ -105,7 +125,7 @@ io.on('connection', (socket) => {
         if(data.nbJoueurs == 1){
             jeton = 0;
             socket.emit('messageServeur', 'La partie commence');
-            partie(nbTours);
+            partie();
         }
         else{
             socket.emit('messageServeur', "1/"+nbJoueurs+" joueurs. En attente...");
@@ -128,7 +148,7 @@ io.on('connection', (socket) => {
                 if (joueurs.length == nbJoueurs){
                     jeton = 0;
                     io.emit('messageServeur', 'La partie commence');
-                    partie(nbTours);
+                    partie();
                 }
                 let nomsJoueurs = "";
                 for (let joueur of joueurs) nomsJoueurs += joueur.get('name')+" ";
