@@ -39,7 +39,7 @@ function nbAleatoire() {
     }
 }
 
-function partie(tours){
+function partie(){
     var cases = [];                   // création des biomes du terrain
     for (i = 0; i < 169; i ++){
         let couleur = nbAleatoire();
@@ -78,7 +78,14 @@ function partie(tours){
         console.log("c1 : ",c1);
         console.log("c2 : ",c2);
     }
-     //faire apparaître les créatures M/F (M = carré et F = triangle)
+    for (i = 1; i < nbTours; i ++){
+        //faire apparaître les créatures M/F (M = carré et F = triangle)
+        //utiliser le jeton
+        //décrémenter satiété hydratation
+        //faire algo pathfinding
+        //la dernière espèce en vie gagne
+    }
+    //l'espèce avec la plus grande population gagne
 }
 
 io.on('connection', (socket) => {
