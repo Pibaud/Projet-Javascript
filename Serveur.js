@@ -77,6 +77,7 @@ function partie(){
                 pos = [6,12];
                 break;
         }
+        M.set("numCreateur",i);
         M.set("sexe","M");
         M.set("couleur", couleurs[i]);
         M.set("reproduction", joueurs[i].get("reproduction"));
@@ -85,6 +86,7 @@ function partie(){
         M.set("satiete", 10);
         M.set("hydratation", 10);
         M.set("position", pos);
+        F.set("numCreateur",i);
         F.set("sexe","F");
         F.set("couleur", couleurs[i]);
         F.set("reproduction", joueurs[i].get("reproduction"));
@@ -95,13 +97,18 @@ function partie(){
         F.set("position", pos);
         toutesCréatures[i].push(M);
         toutesCréatures[i].push(F);
+        io.emit('nouvellePosition', toutesCréatures[i]);
     }
     for (i = 1; i < nbTours; i ++){
-
-        socket.emit('nouvellePosition', )
-        //faire apparaître les créatures M/F (M = carré et F = triangle)
-        //utiliser le jeton
-        //décrémenter satiété hydratation
+        //déplacer créatures (la fonction déplacement intègre la décrémentation de la satiété et de l'hydratation et aussi leur gain si l'espèce est sur une case ressource)
+        //attendre 1 sec
+        jeton = 1 
+        if(jeton == joueurs.length){
+            jeton = 0;
+        }
+        else{
+            //tour du joueur 2
+        }
         //faire algo pathfinding
         //la dernière espèce en vie gagne
     }
@@ -124,7 +131,7 @@ io.on('connection', (socket) => {
         joueurs.push(joueur);
         if(data.nbJoueurs == 1){
             jeton = 0;
-            socket.emit('messageServeur', 'La partie commence');
+            socket.emit('messageServeur', "La partie solo commence");
             partie();
         }
         else{

@@ -169,6 +169,9 @@
          });
 
          socket.on('messageServeur', message => {
+            if(message == "La partie solo commence"){
+               numJoueur = 0;
+            }
             console.log("Message serveur : ", message);
             $("#messageServeur").text(message); 
          });
@@ -176,6 +179,12 @@
          socket.on('cases', data =>{
             colorationTerrain(data.cases, data.nbJoueurs);
             document.getElementById("tablier").style.display = "inline";
+         });
+
+         socket.on('nouvellePosition', ci =>{
+            if(ci[0].get("numCreateur") == numJoueur){
+               //afficher
+            }
          });
          
       </script>
