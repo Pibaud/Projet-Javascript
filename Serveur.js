@@ -41,8 +41,27 @@ function nbAleatoire() {
     }
 }
 
+function deplacer(c){
+    var position = c.get("pos");
+    var reproduction = c.get("reproduction");
+    var perception = c.get("perception");
+    var force = c.get("force");
+    //tester les six cas possiblers de position autour de l'hexagone actuel
+    
+
+    //faire un liste des cases autour
+    //aucune intéressante -> random, 1 intéressante -> y aller, plusieurs intéressantes -> aller dans la première vue
+    //définir la priorité : mager boire ou se reproduire
+    //aller dans la case prioritaire ou continuer à la chercher
+    //traiter cas d'une case occupée
+    //faire un switch sur la couleur de la case pour augmenter fonctions vitales
+    //décrémenter fonctions vitales
+    //une des fonctions à zéro -> mort
+    //POUR CHAQUE CHANGEMENT D'ÉTAT FAIRE io.emit
+}
+
 function partie(){
-    for (i = 0; i < 169; i ++){
+    for (i = 0; i < 169; i ++){     // génération de la couleur des cases
         let couleur = nbAleatoire();
         switch (couleur){
             case 1:
@@ -58,23 +77,23 @@ function partie(){
                 break;
         }
     }
-    io.emit('cases', {'cases':cases, 'nbJoueurs':nbJoueurs}); // envoi des informations du terrain initial
+    io.emit('cases', {'cases':cases, 'nbJoueurs':nbJoueurs}); // envoi des informations du terrain
     for (i = 0; i < nbJoueurs; i++){ // création de la liste de créatures de chaque joueur
         let M = new Map(); 
         let F = new Map();
-        let pos = [];          // pos [0,0] définit l'orgine qui correspond à l'hexagone le plus à gauche de la ligne la plus basse (p[colonne, ligne])
+        let pos = [];          
         switch (i){
             case 0:
-                pos = [0,6];
+                pos = "#g78";
                 break;
             case 1:
-                pos = [12,6];
+                pos = "#g90";
                 break;
             case 2:
-                pos = [6,0];
+                pos = "#g162";
                 break;
             case 3:
-                pos = [6,12];
+                pos = "#g6";
                 break;
         }
         M.set("numCreateur",i);
@@ -85,7 +104,7 @@ function partie(){
         M.set("force", joueurs[i].get("force"));
         M.set("satiete", 10);
         M.set("hydratation", 10);
-        M.set("position", pos);
+        M.set("idG", pos);
         F.set("numCreateur",i);
         F.set("sexe","F");
         F.set("couleur", couleurs[i]);
@@ -94,22 +113,44 @@ function partie(){
         F.set("force", joueurs[i].get("force"));
         F.set("satiete", 10);
         F.set("hydratation", 10);
-        F.set("position", pos);
+        F.set("idG", pos);
         toutesCréatures[i].push(M);
         toutesCréatures[i].push(F);
         io.emit('nouvellePosition', nbJoueurs);
     }
+    var reproductionPossible = 0;
+    //attendre 0.5 sec
     for (i = 1; i < nbTours; i ++){
-        //déplacer créatures (la fonction déplacement intègre la décrémentation de la satiété et de l'hydratation et aussi leur gain si l'espèce est sur une case ressource)
+        if(i == 3){
+            reproductionPossible = 1;
+        }
+        deplacer(c1);
         //attendre 1 sec
-        jeton = 1 
+        jeton ++;
         if(jeton == joueurs.length){
             jeton = 0;
         }
         else{
-            //tour du joueur 2
+            deplacer(c2);
+            //attendre 1 sec
+            jeton ++;
+            if(jeton == joueurs.length){
+                jeton = 0;
+            }
+            else{
+                deplacer(c3);
+                //attendre 1 sec
+                jeton ++;
+                if(jeton == joueurs.length){
+                    jeton = 0;
+                }
+                else{
+                    deplacer(c4);
+                    //attendre 1 sec
+                    jeton = 0;
+                }
+            }
         }
-        //faire algo pathfinding
         //la dernière espèce en vie gagne
     }
     //l'espèce avec la plus grande population gagne

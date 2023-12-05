@@ -11,7 +11,7 @@
 
          var nbLignes = nbColonnes = 13;
          var rayon = 35;
-         const coteCarre = coteTriangle = 10;
+         const coteCarre = coteTriangle = 20;
          var numJoueur = -1;
          const nbMaxJoueurs = 4;
 
@@ -83,6 +83,7 @@
                   .attr("id", "g" + (ligne * nbLignes + colonne))
                   .attr("data-x", x) // utiles pour afficher les créatures
                   .attr("data-y", y)
+                  .attr("pos",[ligne, colonne])
                   .append("path")
                   .attr("d", d)
                   .attr("stroke", "black")
@@ -194,40 +195,74 @@
                groupe.append("rect")
                   .attr("width", coteCarre)
                   .attr("height", coteCarre)
-                  .attr("x", x+10)
-                  .attr("y", y+10)
+                  .attr("x", x+5)
+                  .attr("y", y+7.5)
                   .attr("stroke", "black")
-                  .attr("fill", "#FFFFFF");
+                  .attr("fill", "#FF003B");
 
                groupe.append("circle")
-                  .attr("cx", x+40)
-                  .attr("cy", y+15)
-                  .attr("r", coteCarre / 2) // Le rayon est la moitié de la largeur du carré
+                  .attr("cx", x+45)
+                  .attr("cy", y+17.5)
+                  .attr("r", coteCarre / 2)
                   .attr("stroke", "black")
-                  .attr("fill", "#FFFFFF");
-
-               console.log("créatures de j1 affichées");
+                  .attr("fill", "#FF003B");
             }
             if(nbJoueurs >= 2){
-               d3.select("#h90").append("rect")
-                        .attr("width", coteCarre)
-                        .attr("height", coteCarre)
-                        .attr("stroke", "black")
-                        .attr("fill", "#C400FF");
+               var groupe = d3.select("#g90"); // Remplacez 78 par l'ID de l'hexagone spécifique
+               var x = +groupe.attr("data-x"); // Convertissez en nombre
+               var y = +groupe.attr("data-y"); // Convertissez en nombre
+               groupe.append("rect")
+                  .attr("width", coteCarre)
+                  .attr("height", coteCarre)
+                  .attr("x", x+5)
+                  .attr("y", y+7.5)
+                  .attr("stroke", "black")
+                  .attr("fill", "#C400FF");
+
+               groupe.append("circle")
+                  .attr("cx", x+45)
+                  .attr("cy", y+17.5)
+                  .attr("r", coteCarre / 2)
+                  .attr("stroke", "black")
+                  .attr("fill", "#C400FF");
             }
             if(nbJoueurs >= 3){
-               d3.select("#h162").append("rect")
-                        .attr("width", coteCarre)
-                        .attr("height", coteCarre)
-                        .attr("stroke", "black")
-                        .attr("fill", "#F1C40F");
+               var groupe = d3.select("#g162"); // Remplacez 78 par l'ID de l'hexagone spécifique
+               var x = +groupe.attr("data-x"); // Convertissez en nombre
+               var y = +groupe.attr("data-y"); // Convertissez en nombre
+               groupe.append("rect")
+                  .attr("width", coteCarre)
+                  .attr("height", coteCarre)
+                  .attr("x", x+5)
+                  .attr("y", y+7.5)
+                  .attr("stroke", "black")
+                  .attr("fill", "#F1C40F");
+
+               groupe.append("circle")
+                  .attr("cx", x+45)
+                  .attr("cy", y+17.5)
+                  .attr("r", coteCarre / 2)
+                  .attr("stroke", "black")
+                  .attr("fill", "#F1C40F");
             }
             if(nbJoueurs == 4){
-               d3.select("#h6").append("rect")
-                        .attr("width", coteCarre)
-                        .attr("height", coteCarre)
-                        .attr("stroke", "black")
-                        .attr("fill", "#FF8BF1");
+               var groupe = d3.select("#g6"); // Remplacez 78 par l'ID de l'hexagone spécifique
+               var x = +groupe.attr("data-x"); // Convertissez en nombre
+               var y = +groupe.attr("data-y"); // Convertissez en nombre
+               groupe.append("rect")
+                  .attr("width", coteCarre)
+                  .attr("height", coteCarre)
+                  .attr("x", x+5)
+                  .attr("y", y+7.5)
+                  .attr("stroke", "black")
+                  .attr("fill", "#FF8BF1");
+
+               groupe.append("circle")
+                  .attr("cx", x+45)
+                  .attr("cy", y+17.5)
+                  .attr("r", coteCarre / 2)
+                  .attr("stroke", "black")
+                  .attr("fill", "#FF8BF1");
             }
          });
          
