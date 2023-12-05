@@ -14,6 +14,7 @@ app.get('/', (request, response) => {
 
 var nbJoueurs;
 var nbTours;
+var cases = [];
 const couleurs = ["#FF003B", "#C400FF", "#F1C40F", "#FF8BF1"];
 var joueurs = [];
 var c1 = [];
@@ -41,7 +42,6 @@ function nbAleatoire() {
 }
 
 function partie(){
-    var cases = [];                   // création des biomes du terrain
     for (i = 0; i < 169; i ++){
         let couleur = nbAleatoire();
         switch (couleur){
@@ -97,7 +97,7 @@ function partie(){
         F.set("position", pos);
         toutesCréatures[i].push(M);
         toutesCréatures[i].push(F);
-        io.emit('nouvellePosition', toutesCréatures[i]);
+        io.emit('nouvellePosition', nbJoueurs);
     }
     for (i = 1; i < nbTours; i ++){
         //déplacer créatures (la fonction déplacement intègre la décrémentation de la satiété et de l'hydratation et aussi leur gain si l'espèce est sur une case ressource)
