@@ -53,15 +53,15 @@ function deplacer(c){
     var reproduction = c.get("reproduction");
     var perception = c.get("perception");
     var force = c.get("force");
-    const voisinsPossibles = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
-    for(voisin in voisinsPossibles){ //syntaxe à vérifier
-        if(positionsPossibles.includes(position+voisinspossible));//test à affiner
+    var nbHexATester = perception*6;//surement faux (3n(n−1) ?)
+    const voisinsPossibles = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];//vrai si perception = 1 mais si perception = 5 ?
+    var voisins = [];
+    for(i = 0; i<6; i++){
+        if(positionsPossibles.includes([position[0]+voisinsPossibles[i][0],position[1]+voisinsPossibles[i][1]])){
+            voisins.push
+        }
     }
-    //tester les six cas possiblers de position autour de l'hexagone actuel
-    //vérifier existence
     
-
-    //faire un liste des cases autour
     //aucune intéressante -> random, 1 intéressante -> y aller, plusieurs intéressantes -> aller dans la première vue
     //définir la priorité : mager boire ou se reproduire
     //aller dans la case prioritaire ou continuer à la chercher
