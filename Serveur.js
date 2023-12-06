@@ -53,8 +53,22 @@ function deplacer(c){
     var reproduction = c.get("reproduction");
     var perception = c.get("perception");
     var force = c.get("force");
-    var nbHexATester = perception*6;//surement faux (3n(n−1) ?)
-    const voisinsPossibles = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];//vrai si perception = 1 mais si perception = 5 ?
+    var voisinsPossibles = [];
+    if(perception >= 1){
+        voisinsPossibles.push([[0,1],[0,-1],[1,0],[1,1],[-1,0],[-1,-1]]);
+    }
+    if(perception >= 2){
+        voisinsPossibles.push([[0,2],[1,2],[2,2],[2,1],[2,0],[1,-1],[0,-2],[-1,-2],[-2,-2],[-2,-1],[-2,0],[-1,1]]);
+    }
+    if(perception >= 3){
+        voisinsPossibles.push([[0,3],[1,3],[2,3],[3,3],[3,2],[3,1],[3,0],[2,-1],[1,-2],[0,-3],[-1,-3],[-2,-3],[-3,-3],[-3,-2],[-3,-1],[-3,0],[-2,1],[-1,2]]);
+    }
+    if(perception >= 4){
+        voisinsPossibles.push([[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]);
+    }
+    if(perception == 5){
+        voisinsPossibles.push();
+    }
     var voisins = [];
     for(i = 0; i<6; i++){
         if(positionsPossibles.includes([position[0]+voisinsPossibles[i][0],position[1]+voisinsPossibles[i][1]])){

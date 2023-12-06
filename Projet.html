@@ -83,7 +83,7 @@
                   .attr("id", "g" + (ligne * nbLignes + colonne))
                   .attr("data-x", x) // utiles pour afficher les créatures
                   .attr("data-y", y)
-                  .attr("pos",[ligne, colonne])
+                  .attr("pos",[colonne, ligne])
                   .append("path")
                   .attr("d", d)
                   .attr("stroke", "black")
