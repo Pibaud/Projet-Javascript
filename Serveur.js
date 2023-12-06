@@ -23,6 +23,13 @@ var c3 = [];
 var c4 = [];
 var toutesCréatures = [c1, c2, c3, c4];
 var jeton = -1;
+var positionsPossibles = [];
+for (l=0; l < 13; l++) {
+    for (c=0; c < 13; c++){
+        positionsPossibles.push([l,c]);
+    }
+}
+console.log(positionsPossibles);
   
 server.listen(8888, () => {
     console.log('Le serveur écoute sur le port 8888');
@@ -46,7 +53,12 @@ function deplacer(c){
     var reproduction = c.get("reproduction");
     var perception = c.get("perception");
     var force = c.get("force");
+    const voisinsPossibles = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+    for(voisin in voisinsPossibles){ //syntaxe à vérifier
+        if(positionsPossibles.includes(position+voisinspossible));//test à affiner
+    }
     //tester les six cas possiblers de position autour de l'hexagone actuel
+    //vérifier existence
     
 
     //faire un liste des cases autour
