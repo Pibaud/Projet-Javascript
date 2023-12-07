@@ -95,8 +95,12 @@
          }
 
          function colorationTerrain(cases, nbJoueurs) {
-            for (let i = 0; i < 169; i++) { // coloration des biomes
-               d3.select("#g" + i + " path").attr("fill", cases[i]);
+            for (l = 0; l < 13; l ++){     // coloration des biomes
+               for(c = 0; c < 13; c ++){
+                  let positionCase = [c,l];
+                  let caseCourante = cases.find(caseInfo => caseInfo.pos[0] === positionCase[0] && caseInfo.pos[1] === positionCase[1]);
+                  d3.select("#g" + l*13+c + " path").attr("fill", caseCourante.couleur);
+               }
             }
             if (nbJoueurs >= 1) { // coloration des 4 tanières
                d3.select("#g78 path").attr("fill", "#FF003B");
@@ -187,7 +191,7 @@
             document.getElementById("tablier").style.display = "inline";
          });
 
-         socket.on('nouvellePosition', nbJoueurs =>{
+         socket.on('spawn', nbJoueurs =>{
             if (nbJoueurs >= 1) {
                var groupe = d3.select("#g78"); // Remplacez 78 par l'ID de l'hexagone spécifique
                var x = +groupe.attr("data-x"); // Convertissez en nombre

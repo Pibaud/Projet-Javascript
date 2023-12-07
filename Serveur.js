@@ -14,7 +14,7 @@ app.get('/', (request, response) => {
 
 var nbJoueurs;
 var nbTours;
-var cases = [];
+var cases = []; // pos : [colonne, ligne] (faire ligne*13+colonne pour avoir l'id cote client) couleur : code couleur, occupée : 0 1 2 
 const couleurs = ["#FF003B", "#C400FF", "#F1C40F", "#FF8BF1"];
 var joueurs = [];
 var c1 = [];
@@ -23,12 +23,14 @@ var c3 = [];
 var c4 = [];
 var toutesCréatures = [c1, c2, c3, c4];
 var jeton = -1;
+var reproductionPossible = 0;
 var positionsPossibles = [];
 for (l=0; l < 13; l++) {
     for (c=0; c < 13; c++){
-        positionsPossibles.push([l,c]);
+        positionsPossibles.push([c,l]);
     }
 }
+var positionCréature;
 console.log(positionsPossibles);
   
 server.listen(8888, () => {
@@ -49,108 +51,165 @@ function nbAleatoire() {
 }
 
 function deplacer(c){
-    var position = c.get("pos");
-    var reproduction = c.get("reproduction");
-    var perception = c.get("perception");
-    var force = c.get("force");
-    var voisinsPossibles = [];
+    let taniere = c.get("taniere");
+    positionCréature = c.get("posActuelle");
+    let perception = c.get("perception");
+    let satiete = c.get("satiete");
+    let hydratation = c.get("hydratation");
+    let voisinsPossibles = [];
     if(perception >= 1){
-        voisinsPossibles.push([[0,1],[0,-1],[1,0],[1,1],[-1,0],[-1,-1]]);
+        voisinsPossibles.push(...[[0,1],[0,-1],[1,0],[1,1],[-1,0],[-1,-1]]);// ... permet de push chaque élément d'un coup et non la liste de tous les éléments
     }
     if(perception >= 2){
-        voisinsPossibles.push([[0,2],[1,2],[2,2],[2,1],[2,0],[1,-1],[0,-2],[-1,-2],[-2,-2],[-2,-1],[-2,0],[-1,1]]);
+        voisinsPossibles.push(...[[0,2],[1,2],[2,2],[2,1],[2,0],[1,-1],[0,-2],[-1,-2],[-2,-2],[-2,-1],[-2,0],[-1,1]]);
     }
     if(perception >= 3){
-        voisinsPossibles.push([[0,3],[1,3],[2,3],[3,3],[3,2],[3,1],[3,0],[2,-1],[1,-2],[0,-3],[-1,-3],[-2,-3],[-3,-3],[-3,-2],[-3,-1],[-3,0],[-2,1],[-1,2]]);
+        voisinsPossibles.push(...[[0,3],[1,3],[2,3],[3,3],[3,2],[3,1],[3,0],[2,-1],[1,-2],[0,-3],[-1,-3],[-2,-3],[-3,-3],[-3,-2],[-3,-1],[-3,0],[-2,1],[-1,2]]);
     }
     if(perception >= 4){
-        voisinsPossibles.push([[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]);
+        voisinsPossibles.push(...[[0,4],[1,4],[2,4],[3,4],[4,4],[4,3],[4,2],[4,1],[4,0],[3,-1],[2,-2],[1,-3],[0,-4],[-1,-4],[-2,-4],[-3,-4],[-4,-4],[-4,-3],[-4,-2],[-4,-1],[-4,0],[-3,1],[-2,2],[-1,3]]);
     }
     if(perception == 5){
-        voisinsPossibles.push();
+        voisinsPossibles.push(...[[0,5],[1,5],[2,5],[3,5],[4,5],[5,5],[5,4],[5,3],[5,2],[5,1],[5,0],[4,-1],[3,-2],[2,-3],[1,-4],[0,-5],[-1,-5],[-2,-5],[-3,-5],[-4,-5],[-5,-5],[-5,-4],[-5,-3],[-5,-2],[-5,-1],[-5,0],[-4,-1],[-3,2],[-2,3],[-1,4]]);
     }
-    var voisins = [];
-    for(i = 0; i<6; i++){
-        if(positionsPossibles.includes([position[0]+voisinsPossibles[i][0],position[1]+voisinsPossibles[i][1]])){
-            voisins.push
+    let voisins = [];
+    for(i = 0; i<voisinsPossibles.length; i++){
+        let voisin = [positionCréature[0]+voisinsPossibles[i][0],positionCréature[1]+voisinsPossibles[i][1]];
+        if(positionsPossibles.some(p => p[0] === voisin[0] && p[1] === voisin[1])){ // .includes ne suffit pas car les éléments sont des tableaux
+            voisins.push(voisin);
         }
     }
-    
-    //aucune intéressante -> random, 1 intéressante -> y aller, plusieurs intéressantes -> aller dans la première vue
-    //définir la priorité : mager boire ou se reproduire
-    //aller dans la case prioritaire ou continuer à la chercher
-    //traiter cas d'une case occupée
+
+    function seRapprocherDe(Case){
+        if(positionCréature[0] > Case[0]){
+            positionCréature[0] -= 1;
+        }
+        if(positionCréature[0] < Case[0]){
+            positionCréature[0] += 1;
+        }
+        if(positionCréature[1] > Case[1]){
+            positionCréature[1] -= 1;
+        }
+        if(positionCréature[1] < Case[1]){
+            positionCréature[1] += 1;
+        }
+        return [positionCréature[0],positionCréature[1]];
+    }
+
+    if(reproductionPossible == 1 && c.get("satiete") >= 7){ // priorité à la reproduction
+        positionCréature = seRapprocherDe(taniere);
+    }
+    else{ //continuer d'augmenter ses fonctions (soit parce qu'on doit attendre le 3 eme tour soit parce qu'on est pas assez nourri)
+        function caseLaPlusProche(listeCases){
+
+        }
+        let casesEau = [];
+        let casesPrairie = [];
+        for(i = 0; i < voisins.length; i ++){
+            let caseTest = cases.find(caseInfo => caseInfo.pos[0] === voisins[i][0] && caseInfo.pos[1] === voisins[i][1]); //on associe le voisin avec la case contenant les infos
+            if(caseTest.couleur == "#3498DB"){
+                casesEau.push(caseTest);          //lister cases eau
+            }
+            else{
+                casesPrairie.push(caseTest);      //lister cases prairie
+            }
+        }
+        if(casesEau.length >= 1){
+            positionCréature = seRapprocherDe(caseLaPlusProche(casesEau)); 
+        }
+        if(casesPrairie.length >= 1){
+            positionCréature = seRapprocherDe(caseLaPlusProche(casesPrairie)); 
+        }
+        if(casesEau.length >= 1 && casesPrairie.length >= 1){
+            if(hydratation <= satiete){
+                positionCréature = seRapprocherDe(caseLaPlusProche(casesEau)); // car on a plus rapidement 
+            }
+            else{
+                positionCréature = seRapprocherDe(caseLaPlusProche(casesPrairie));
+            }
+        }
+    }
+
     //faire un switch sur la couleur de la case pour augmenter fonctions vitales
     //décrémenter fonctions vitales
     //une des fonctions à zéro -> mort
     //POUR CHAQUE CHANGEMENT D'ÉTAT FAIRE io.emit
 }
+    
+
+    
+
 
 function partie(){
-    for (i = 0; i < 169; i ++){     // génération de la couleur des cases
-        let couleur = nbAleatoire();
-        switch (couleur){
-            case 1:
-                cases[i] = "#3498DB"; // eau
-                break;
-
-            case 2:
-                cases[i] = "#8BC34A"; // prairie
-                break;
-
-            case 3:
-                cases[i] = "#707B7C"; // rocher
-                break;
+    for (let l = 0; l < 13; l++) {         // Génération des cases
+        for (let c = 0; c < 13; c++) {
+            let couleur = nbAleatoire();
+            let caseInfo = {
+                pos: [c, l],
+                population: 0,
+                couleur: ''
+            };
+            switch (couleur) {
+                case 1:
+                    caseInfo.couleur = "#3498DB"; // eau
+                    break;
+                case 2:
+                    caseInfo.couleur = "#8BC34A"; // prairie
+                    break;
+                case 3:
+                    caseInfo.couleur = "#707B7C"; // rocher
+                    break;
+            }
+            cases.push(caseInfo);
         }
     }
     io.emit('cases', {'cases':cases, 'nbJoueurs':nbJoueurs}); // envoi des informations du terrain
     for (i = 0; i < nbJoueurs; i++){ // création de la liste de créatures de chaque joueur
-        let M = new Map(); 
-        let F = new Map();
-        let pos = [];          
+        let pos = [];
+        let caseCourante;       
         switch (i){
             case 0:
-                pos = "#g78";
+                pos = [0,6];
                 break;
             case 1:
-                pos = "#g90";
+                pos = [12,6];
                 break;
             case 2:
-                pos = "#g162";
+                pos = [6,0];
                 break;
             case 3:
-                pos = "#g6";
+                pos = [6,12];
                 break;
         }
-        M.set("numCreateur",i);
-        M.set("sexe","M");
-        M.set("couleur", couleurs[i]);
-        M.set("reproduction", joueurs[i].get("reproduction"));
-        M.set("perception", joueurs[i].get("perception"));
-        M.set("force", joueurs[i].get("force"));
-        M.set("satiete", 10);
-        M.set("hydratation", 10);
-        M.set("idG", pos);
-        F.set("numCreateur",i);
-        F.set("sexe","F");
-        F.set("couleur", couleurs[i]);
-        F.set("reproduction", joueurs[i].get("reproduction"));
-        F.set("perception", joueurs[i].get("perception"));
-        F.set("force", joueurs[i].get("force"));
-        F.set("satiete", 10);
-        F.set("hydratation", 10);
-        F.set("idG", pos);
-        toutesCréatures[i].push(M);
-        toutesCréatures[i].push(F);
-        io.emit('nouvellePosition', nbJoueurs);
+        caseCourante = cases.find(caseInfo => caseInfo.pos[0] === pos[0] && caseInfo.pos[1] === pos[1]);
+        caseCourante.population = 1;
+
+        function creerCreature(sexe) {
+            let creature = new Map();
+            creature.set("sexe", sexe);
+            creature.set("couleur", couleurs[i]);
+            creature.set("reproduction", joueurs[i].get("reproduction"));
+            creature.set("perception", joueurs[i].get("perception"));
+            creature.set("force", joueurs[i].get("force"));
+            creature.set("satiete", 10.0);
+            creature.set("hydratation", 10.0);
+            creature.set("taniere", pos);
+            creature.set("posActuelle", pos);
+            toutesCréatures[i].push(creature);
+        }
+        creerCreature("M");
+        creerCreature("F");
     }
-    var reproductionPossible = 0;
+    io.emit('spawn', nbJoueurs);
     //attendre 0.5 sec
     for (i = 1; i < nbTours; i ++){
         if(i == 3){
             reproductionPossible = 1;
         }
-        deplacer(c1);
+        for(j = 0; j < c1.length; j ++){
+            deplacer(c1[j]);
+            // s'occuper du cas de reproduction et de concurrence pour une case
+        }
         //attendre 1 sec
         jeton ++;
         if(jeton == joueurs.length){
