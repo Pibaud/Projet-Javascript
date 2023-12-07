@@ -100,7 +100,7 @@ function deplacer(c){
     }
     else{ //continuer d'augmenter ses fonctions (soit parce qu'on doit attendre le 3 eme tour soit parce qu'on est pas assez nourri)
         
-        function distance(p1, p2) {
+        function Distance(p1, p2) {
             const dx = p1[0] - p2[0];
             const dy = p1[1] - p2[1];
             return Math.sqrt(dx * dx + dy * dy);
@@ -108,10 +108,10 @@ function deplacer(c){
         
         function caseLaPlusProche(listeCases) {
             let plusProche = listeCases[0];
-            let distanceMin = distance(positionInitiale, plusProche);
+            let distanceMin = Distance(positionInitiale, plusProche);
         
             for (let i = 1; i < listeCases.length; i++) {
-                const distance = distance(positionInitiale, listeCases[i]);
+                const distance = Distance(positionInitiale, listeCases[i]);
                 if (distance < distanceMin) {
                     distanceMin = distance;
                     plusProche = listeCases[i];
@@ -131,7 +131,7 @@ function deplacer(c){
                 casesPrairie.push(caseTest);      //lister cases prairie
             }
         }
-        if(casesEau.length >= 1 || casesEau.length >= 1){    // alors on a des cases de ressources intéressantes
+        if(casesEau.length >= 1 || casesPrairie.length >= 1){    // alors on a des cases de ressources intéressantes
             if(casesEau.length >= 1){
                 seRapprocherDe(caseLaPlusProche(casesEau));
                 if(casesPrairie.length >= 1){
@@ -154,10 +154,6 @@ function deplacer(c){
         //POUR CHAQUE CHANGEMENT D'ÉTAT FAIRE io.emit
     }
 }
-    
-
-    
-
 
 function partie(){
     for (let l = 0; l < 13; l++) {         // Génération des cases

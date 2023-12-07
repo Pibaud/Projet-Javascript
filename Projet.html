@@ -89,20 +89,23 @@
                   .attr("stroke", "black")
                   .attr("fill", "white")
                   .attr("class", "hexagoneDamier")
+                  .attr("pos",[colonne, ligne])
                   .attr("id", "h" + (ligne * nbLignes + colonne)); // car un id doit commencer par une lettre
                }
             }
          }
 
          function colorationTerrain(cases, nbJoueurs) {
-            for (l = 0; l < 13; l ++){     // coloration des biomes
-               for(c = 0; c < 13; c ++){
-                  let positionCase = [c,l];
-                  let caseCourante = cases.find(caseInfo => caseInfo.pos[0] === positionCase[0] && caseInfo.pos[1] === positionCase[1]);
-                  d3.select("#g" + l*13+c + " path").attr("fill", caseCourante.couleur);
+            for (let ligne = 0; ligne < 13; ligne++) {
+               for (let colonne = 0; colonne < 13; colonne++) {
+                     let positionCase = [colonne, ligne];
+                     let caseCourante = cases.find(caseInfo => caseInfo.pos[0] === positionCase[0] && caseInfo.pos[1] === positionCase[1]);
+                     let idGroupe = "#g" + (ligne * 13 + colonne);
+                     d3.select(idGroupe + " path").attr("fill", caseCourante.couleur);
                }
             }
-            if (nbJoueurs >= 1) { // coloration des 4 tanières
+
+            if (nbJoueurs >= 1) {
                d3.select("#g78 path").attr("fill", "#FF003B");
             }
             if (nbJoueurs >= 2) {
@@ -115,6 +118,7 @@
                d3.select("#g6 path").attr("fill", "#FF8BF1");
             }
          }
+
 
          window.addEventListener('load', (event) => {
             $("#tousRépartis").css("display","none");
@@ -186,6 +190,7 @@
          });
 
          socket.on('cases', data =>{
+            console.dir(data.cases);
             colorationTerrain(data.cases, data.nbJoueurs);
             console.log("coloration du terrain");
             document.getElementById("tablier").style.display = "inline";
