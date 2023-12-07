@@ -24,13 +24,14 @@ var c4 = [];
 var toutesCréatures = [c1, c2, c3, c4];
 var jeton = -1;
 var reproductionPossible = 0;
+var positionCréature;
 var positionsPossibles = [];
 for (l=0; l < 13; l++) {
     for (c=0; c < 13; c++){
         positionsPossibles.push([c,l]);
     }
 }
-var positionCréature;
+
 console.log(positionsPossibles);
   
 server.listen(8888, () => {
@@ -114,26 +115,28 @@ function deplacer(c){
                 casesPrairie.push(caseTest);      //lister cases prairie
             }
         }
-        if(casesEau.length >= 1){
-            positionCréature = seRapprocherDe(caseLaPlusProche(casesEau)); 
-        }
-        if(casesPrairie.length >= 1){
-            positionCréature = seRapprocherDe(caseLaPlusProche(casesPrairie)); 
-        }
-        if(casesEau.length >= 1 && casesPrairie.length >= 1){
-            if(hydratation <= satiete){
-                positionCréature = seRapprocherDe(caseLaPlusProche(casesEau)); // car on a plus rapidement 
-            }
+        if(casesEau.length >= 1 || casesEau.length >= 1){    // alors on a des cases de ressources intéressantes
+            if(casesEau.length >= 1){
+                positionCréature = seRapprocherDe(caseLaPlusProche(casesEau));
+                if(casesPrairie.length >= 1){
+                    if(hydratation > satiete){
+                        positionCréature = seRapprocherDe(caseLaPlusProche(casesPrairie)); // car on a plus rapidement soif que faim d'où le > et pas le >=
+                    }
+                }
             else{
-                positionCréature = seRapprocherDe(caseLaPlusProche(casesPrairie));
+                positionCréature = seRapprocherDe(caseLaPlusProche(casesPrairie)); 
             }
+            }
+        else{                                              // alors on en a pas
+            // se déplacer random
         }
-    }
+        }   
 
-    //faire un switch sur la couleur de la case pour augmenter fonctions vitales
-    //décrémenter fonctions vitales
-    //une des fonctions à zéro -> mort
-    //POUR CHAQUE CHANGEMENT D'ÉTAT FAIRE io.emit
+        //faire un switch sur la couleur de la case pour augmenter fonctions vitales
+        //décrémenter fonctions vitales
+        //une des fonctions à zéro -> mort
+        //POUR CHAQUE CHANGEMENT D'ÉTAT FAIRE io.emit
+    }
 }
     
 
@@ -209,6 +212,7 @@ function partie(){
         for(j = 0; j < c1.length; j ++){
             deplacer(c1[j]);
             // s'occuper du cas de reproduction et de concurrence pour une case
+            //décrémenter et ou augmenter fonctions vitales
         }
         //attendre 1 sec
         jeton ++;
@@ -216,21 +220,32 @@ function partie(){
             jeton = 0;
         }
         else{
-            deplacer(c2);
+            for(j = 0; j < c2.length; j ++){
+                deplacer(c2[j]);
+                // s'occuper du cas de reproduction et de concurrence pour une case
+                //décrémenter et ou augmenter fonctions vitales
+            }
             //attendre 1 sec
             jeton ++;
             if(jeton == joueurs.length){
                 jeton = 0;
             }
             else{
-                deplacer(c3);
-                //attendre 1 sec
+                for(j = 0; j < c3.length; j ++){
+                    deplacer(c3[j]);
+                    // s'occuper du cas de reproduction et de concurrence pour une case
+                    //décrémenter et ou augmenter fonctions vitales
+                }
                 jeton ++;
                 if(jeton == joueurs.length){
                     jeton = 0;
                 }
                 else{
-                    deplacer(c4);
+                    for(j = 0; j < c4.length; j ++){
+                        deplacer(c4[j]);
+                        // s'occuper du cas de reproduction et de concurrence pour une case
+                        //décrémenter et ou augmenter fonctions vitales
+                    }
                     //attendre 1 sec
                     jeton = 0;
                 }
