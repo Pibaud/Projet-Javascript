@@ -24,7 +24,6 @@ var c4 = [];
 var toutesCréatures = [c1, c2, c3, c4];
 var jeton = -1;
 var reproductionPossible = 0;
-var positionCréature;
 var positionsPossibles = [];
 for (l=0; l < 13; l++) {
     for (c=0; c < 13; c++){
@@ -53,14 +52,14 @@ function nbAleatoire() {
 
 function deplacer(c){
     let taniere = c.get("taniere");
-    positionCréature = c.get("posActuelle");
+    positionCible = positionInitiale = c.get("posActuelle");
     let perception = c.get("perception");
     let satiete = c.get("satiete");
     let hydratation = c.get("hydratation");
     let voisinsPossibles = [];
     if(perception >= 1){
-        voisinsPossibles.push(...[[0,1],[0,-1],[1,0],[1,1],[-1,0],[-1,-1]]);// ... permet de push chaque élément d'un coup et non la liste de tous les éléments
-    }
+        voisinsPossibles.push(...[[0,0],[0,1],[0,-1],[1,0],[1,1],[-1,0],[-1,-1]]);// ... permet de push chaque élément d'un coup et non la liste de tous les éléments
+    }     // il faut que le non-déplacement soit possible, ie, s'il est sur une case qui va lui servir plusieurs tours il y reste, donc il faut compter la case actuelle comme voisin d'où le [0,0]
     if(perception >= 2){
         voisinsPossibles.push(...[[0,2],[1,2],[2,2],[2,1],[2,0],[1,-1],[0,-2],[-1,-2],[-2,-2],[-2,-1],[-2,0],[-1,1]]);
     }
@@ -75,35 +74,52 @@ function deplacer(c){
     }
     let voisins = [];
     for(i = 0; i<voisinsPossibles.length; i++){
-        let voisin = [positionCréature[0]+voisinsPossibles[i][0],positionCréature[1]+voisinsPossibles[i][1]];
+        let voisin = [positionCible[0]+voisinsPossibles[i][0],positionCible[1]+voisinsPossibles[i][1]];
         if(positionsPossibles.some(p => p[0] === voisin[0] && p[1] === voisin[1])){ // .includes ne suffit pas car les éléments sont des tableaux
             voisins.push(voisin);
         }
     }
 
     function seRapprocherDe(Case){
-        if(positionCréature[0] > Case[0]){
-            positionCréature[0] -= 1;
+        if(positionInitiale[0] > Case[0]){
+            positionCible[0] -= 1;
         }
-        if(positionCréature[0] < Case[0]){
-            positionCréature[0] += 1;
+        if(positionInitiale[0] < Case[0]){
+            positionCible[0] += 1;
         }
-        if(positionCréature[1] > Case[1]){
-            positionCréature[1] -= 1;
+        if(positionInitiale[1] > Case[1]){
+            positionCible[1] -= 1;
         }
-        if(positionCréature[1] < Case[1]){
-            positionCréature[1] += 1;
+        if(positionInitiale[1] < Case[1]){
+            positionCible[1] += 1;
         }
-        return [positionCréature[0],positionCréature[1]];
     }
 
     if(reproductionPossible == 1 && c.get("satiete") >= 7){ // priorité à la reproduction
-        positionCréature = seRapprocherDe(taniere);
+        seRapprocherDe(taniere);
     }
     else{ //continuer d'augmenter ses fonctions (soit parce qu'on doit attendre le 3 eme tour soit parce qu'on est pas assez nourri)
-        function caseLaPlusProche(listeCases){
-
+        
+        function distance(p1, p2) {
+            const dx = p1[0] - p2[0];
+            const dy = p1[1] - p2[1];
+            return Math.sqrt(dx * dx + dy * dy);
         }
+        
+        function caseLaPlusProche(listeCases) {
+            let plusProche = listeCases[0];
+            let distanceMin = distance(positionInitiale, plusProche);
+        
+            for (let i = 1; i < listeCases.length; i++) {
+                const distance = distance(positionInitiale, listeCases[i]);
+                if (distance < distanceMin) {
+                    distanceMin = distance;
+                    plusProche = listeCases[i];
+                }
+            }
+            return plusProche;
+        }
+
         let casesEau = [];
         let casesPrairie = [];
         for(i = 0; i < voisins.length; i ++){
@@ -117,18 +133,18 @@ function deplacer(c){
         }
         if(casesEau.length >= 1 || casesEau.length >= 1){    // alors on a des cases de ressources intéressantes
             if(casesEau.length >= 1){
-                positionCréature = seRapprocherDe(caseLaPlusProche(casesEau));
+                seRapprocherDe(caseLaPlusProche(casesEau));
                 if(casesPrairie.length >= 1){
                     if(hydratation > satiete){
-                        positionCréature = seRapprocherDe(caseLaPlusProche(casesPrairie)); // car on a plus rapidement soif que faim d'où le > et pas le >=
+                        seRapprocherDe(caseLaPlusProche(casesPrairie)); // car on a plus rapidement soif que faim d'où le > et pas le >=
                     }
                 }
             else{
-                positionCréature = seRapprocherDe(caseLaPlusProche(casesPrairie)); 
+                seRapprocherDe(caseLaPlusProche(casesPrairie)); 
             }
             }
         else{                                              // alors on en a pas
-            // se déplacer random
+            // se déplacer random mais surtout ne pas rester sur place
         }
         }   
 
