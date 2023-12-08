@@ -190,7 +190,6 @@
          });
 
          socket.on('cases', data =>{
-            console.dir(data.cases);
             colorationTerrain(data.cases, data.nbJoueurs);
             console.log("coloration du terrain");
             document.getElementById("tablier").style.display = "inline";

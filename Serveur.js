@@ -30,8 +30,6 @@ for (l=0; l < 13; l++) {
         positionsPossibles.push([c,l]);
     }
 }
-
-console.log(positionsPossibles);
   
 server.listen(8888, () => {
     console.log('Le serveur écoute sur le port 8888');
@@ -94,12 +92,12 @@ function deplacer(c){
             positionCible[1] += 1;
         }
     }
-
-    if(reproductionPossible == 1 && c.get("satiete") >= 7){ // priorité à la reproduction
-        seRapprocherDe(taniere);
+    console.log("ma faim : " + satiete + " ma soif : " + hydratation);
+    if(reproductionPossible == 1 && c.get("satiete") >= 6.0){ // priorité à la reproduction
+        seRapprocherDe(taniere); //
     }
     else{ //continuer d'augmenter ses fonctions (soit parce qu'on doit attendre le 3 eme tour soit parce qu'on est pas assez nourri)
-        
+        console.log("je veux donc continuer a augmenter mes fonctions");
         function Distance(p1, p2) {
             const dx = p1[0] - p2[0];
             const dy = p1[1] - p2[1];
@@ -120,8 +118,8 @@ function deplacer(c){
             return plusProche;
         }
 
-        let casesEau = [];
-        let casesPrairie = [];
+        var casesEau = [];
+        var casesPrairie = [];
         for(i = 0; i < voisins.length; i ++){
             let caseTest = cases.find(caseInfo => caseInfo.pos[0] === voisins[i][0] && caseInfo.pos[1] === voisins[i][1]); //on associe le voisin avec la case contenant les infos
             if(caseTest.couleur == "#3498DB"){
@@ -139,20 +137,24 @@ function deplacer(c){
                         seRapprocherDe(caseLaPlusProche(casesPrairie)); // car on a plus rapidement soif que faim d'où le > et pas le >=
                     }
                 }
+            }
             else{
                 seRapprocherDe(caseLaPlusProche(casesPrairie)); 
             }
-            }
-        else{                                              // alors on en a pas
-            // se déplacer random mais surtout ne pas rester sur place
-        }
         }   
-
-        //faire un switch sur la couleur de la case pour augmenter fonctions vitales
-        //décrémenter fonctions vitales
-        //une des fonctions à zéro -> mort
-        //POUR CHAQUE CHANGEMENT D'ÉTAT FAIRE io.emit
+        else{                                              // alors on en a pas
+            console.log("mon objectif est aléatoire");
+        }
     }
+    for(i = 0; i < casesEau.length; i++){
+        console.log("case eau : ");
+        console.log(casesEau[i]);
+    }
+    for(i = 0; i < casesPrairie.length; i++){
+        console.log("case prairie : "+casesPrairie[i]);
+        console.log(casesPrairie[i]);
+    }
+    console.log("mon objectif est "+positionCible[0]+positionCible[1]);
 }
 
 function partie(){
@@ -174,6 +176,18 @@ function partie(){
                 case 3:
                     caseInfo.couleur = "#707B7C"; // rocher
                     break;
+            }
+            if(c == 0 && l == 6 && nbJoueurs == 1){   // si c'est une tanière on peint par dessus
+                caseInfo.couleur = "#FF003B";
+            }
+            if(c == 12 && l == 6 && nbJoueurs == 2){
+                caseInfo.couleur = "#C400FF";
+            }
+            if(c == 6 && l == 0 && nbJoueurs == 3){
+                caseInfo.couleur = "#F1C40F";
+            }
+            if(c == 6 && l == 12 && nbJoueurs == 4){
+                caseInfo.couleur = "#FF8BF1";
             }
             cases.push(caseInfo);
         }
@@ -206,16 +220,18 @@ function partie(){
             creature.set("reproduction", joueurs[i].get("reproduction"));
             creature.set("perception", joueurs[i].get("perception"));
             creature.set("force", joueurs[i].get("force"));
-            creature.set("satiete", 10.0);
-            creature.set("hydratation", 10.0);
+            creature.set("satiete", 4.0);
+            creature.set("hydratation", 4.0);
             creature.set("taniere", pos);
             creature.set("posActuelle", pos);
+            creature.set("tourDernierEnfant",0);
             toutesCréatures[i].push(creature);
         }
         creerCreature("M");
         creerCreature("F");
     }
     io.emit('spawn', nbJoueurs);
+    
     //attendre 0.5 sec
     for (i = 1; i < nbTours; i ++){
         if(i == 3){
@@ -223,7 +239,8 @@ function partie(){
         }
         for(j = 0; j < c1.length; j ++){
             deplacer(c1[j]);
-            // s'occuper du cas de reproduction et de concurrence pour une case
+            // reproduction : si tourDernierEnfant == 0 => peut se reproduire direct sinon comparer au tour actuel et vérifier que tourActuel - tourDernierEnfant > 5
+            // s'occuper de concurrence pour une case
             //décrémenter et ou augmenter fonctions vitales
         }
         //attendre 1 sec
@@ -280,7 +297,6 @@ io.on('connection', (socket) => {
         joueur.set("reproduction", data.reproduction);
         joueur.set("perception", data.perception);
         joueur.set("force", data.force);
-        console.log(joueur);
         joueurs.push(joueur);
         if(data.nbJoueurs == 1){
             jeton = 0;
@@ -302,7 +318,6 @@ io.on('connection', (socket) => {
                 joueur.set("reproduction", data.reproduction);
                 joueur.set("perception", data.perception);
                 joueur.set("force", data.force);
-                console.log(joueur);
                 joueurs.push(joueur);
                 io.emit('messageServeur', joueurs.length+"/"+nbJoueurs+" joueurs. En attente...");
                 if (joueurs.length == nbJoueurs){
