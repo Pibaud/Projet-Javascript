@@ -54,21 +54,21 @@ function deplacer(c){
     let perception = c.get("perception");
     let satiete = c.get("satiete");
     let hydratation = c.get("hydratation");
-    let voisinsPossibles = [];
+    let voisinsPossibles = [0,0];
     if(perception >= 1){
-        voisinsPossibles.push(...[[0,0],[0,1],[0,-1],[1,0],[1,1],[-1,0],[-1,-1]]);// ... permet de push chaque élément d'un coup et non la liste de tous les éléments
+        voisinsPossibles.push(...[[0,1],[0,-1],[1,0],[1,-1],[-1,0],[-1,1]]);// ... permet de push chaque élément d'un coup et non la liste de tous les éléments
     }     // il faut que le non-déplacement soit possible, ie, s'il est sur une case qui va lui servir plusieurs tours il y reste, donc il faut compter la case actuelle comme voisin d'où le [0,0]
     if(perception >= 2){
-        voisinsPossibles.push(...[[0,2],[1,2],[2,2],[2,1],[2,0],[1,-1],[0,-2],[-1,-2],[-2,-2],[-2,-1],[-2,0],[-1,1]]);
+        voisinsPossibles.push(...[[0,-2],[1,-2],[2,-2],[2,-1],[2,0],[1,1],[0,2],[-1,2],[-2,2],[-2,1],[-2,0],[-1,-1]]);
     }
     if(perception >= 3){
-        voisinsPossibles.push(...[[0,3],[1,3],[2,3],[3,3],[3,2],[3,1],[3,0],[2,-1],[1,-2],[0,-3],[-1,-3],[-2,-3],[-3,-3],[-3,-2],[-3,-1],[-3,0],[-2,1],[-1,2]]);
+        voisinsPossibles.push(...[[0,-3],[1,-3],[2,-3],[3,-3],[3,-2],[3,-1],[3,0],[2,1],[1,2],[0,3],[-1,3],[-2,3],[-3,3],[-3,2],[-3,1],[-3,0],[-2,-1],[-1,-2]]);
     }
     if(perception >= 4){
-        voisinsPossibles.push(...[[0,4],[1,4],[2,4],[3,4],[4,4],[4,3],[4,2],[4,1],[4,0],[3,-1],[2,-2],[1,-3],[0,-4],[-1,-4],[-2,-4],[-3,-4],[-4,-4],[-4,-3],[-4,-2],[-4,-1],[-4,0],[-3,1],[-2,2],[-1,3]]);
+        voisinsPossibles.push(...[[0,-4],[1,-4],[2,-4],[3,-4],[4,-4],[4,-3],[4,-2],[4,-1],[4,0],[3,1],[2,2],[1,3],[0,4],[-1,4],[-2,4],[-3,4],[-4,4],[-4,3],[-4,2],[-4,1],[-4,0],[-3,-1],[-2,-2],[-1,-3]]);
     }
     if(perception == 5){
-        voisinsPossibles.push(...[[0,5],[1,5],[2,5],[3,5],[4,5],[5,5],[5,4],[5,3],[5,2],[5,1],[5,0],[4,-1],[3,-2],[2,-3],[1,-4],[0,-5],[-1,-5],[-2,-5],[-3,-5],[-4,-5],[-5,-5],[-5,-4],[-5,-3],[-5,-2],[-5,-1],[-5,0],[-4,-1],[-3,2],[-2,3],[-1,4]]);
+        voisinsPossibles.push(...[[0,-5],[1,-5],[2,-5],[3,-5],[4,-5],[5,-5],[5,-4],[5,-3],[5,-2],[5,-1],[5,0],[4,1],[3,2],[2,3],[1,4],[0,5],[-1,5],[-2,5],[-3,5],[-4,5],[-5,5],[-5,4],[-5,3],[-5,2],[-5,1],[-5,0],[-4,-1],[-3,-2],[-2,-3],[-1,-4]]);
     }
     let voisins = [];
     for(i = 0; i<voisinsPossibles.length; i++){
@@ -125,7 +125,7 @@ function deplacer(c){
             if(caseTest.couleur == "#3498DB"){
                 casesEau.push(caseTest);          //lister cases eau
             }
-            else{
+            if(caseTest.couleur == "#8BC34A"){
                 casesPrairie.push(caseTest);      //lister cases prairie
             }
         }
@@ -146,14 +146,12 @@ function deplacer(c){
             console.log("mon objectif est aléatoire");
         }
     }
-    for(i = 0; i < casesEau.length; i++){
-        console.log("case eau : ");
-        console.log(casesEau[i]);
-    }
-    for(i = 0; i < casesPrairie.length; i++){
-        console.log("case prairie : "+casesPrairie[i]);
-        console.log(casesPrairie[i]);
-    }
+    console.log("liste des voisins : ");
+    console.log(voisins);
+    console.log("cases eau : ");
+    console.dir(casesEau);
+    console.log("cases prairie : ");
+    console.dir(casesPrairie);
     console.log("mon objectif est "+positionCible[0]+positionCible[1]);
 }
 
