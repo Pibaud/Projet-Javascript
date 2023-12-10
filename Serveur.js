@@ -81,7 +81,7 @@ function deplacer(c){
     }
 
     function seRapprocherDe(Objectif){
-        let positionCible = [...position];
+        let positionCible = [...position]; // "..." : pour passer position en copie pour éviter que toutes les positions de l'espèce ne soient changées
         if(position[0] > Objectif[0]){
             positionCible[0] -= 1;
         }
@@ -97,7 +97,7 @@ function deplacer(c){
         console.log("position cible : "+positionCible[0]+","+positionCible[1]);
         return positionCible;
     }
-    if(reproductionPossible == 1 && satiete >= 6.0){ // priorité à la reproduction
+    if(reproductionPossible == 1 && satiete >= 6.0){ // priorité à la reproduction et la garder jusqu'à sa mort (faire un autre if au dessus pour savoir si on est deja dans une taniere si oui y rester)
         but = seRapprocherDe(taniere); //
     }
     else{ //continuer d'augmenter ses fonctions (soit parce qu'on doit attendre le 3 eme tour soit parce qu'on est pas assez nourri)
@@ -151,11 +151,6 @@ function deplacer(c){
         else{                                              // alors on en a pas
         }
     }
-    console.log("cases eau : ");
-    console.dir(casesEau);
-    console.log("cases prairie : ");
-    console.dir(casesPrairie);
-
     return but;
 }
 
@@ -233,21 +228,44 @@ function partie(){
         toutesCréatures[i][1] = creerCreature("F");
     }
     io.emit('spawn', nbJoueurs);
-    //console.log("toutes les créatures :");
-    //console.dir(toutesCréatures);
-    //attendre 0.5 sec
+    //attendre 3 sec
     for (i = 1; i < nbTours; i ++){
         if(i == 3){
             reproductionPossible = 1;
         }
         for(j = 0; j < c1.length; j ++){
             let but = deplacer(c1[j]);
+            let nouvelleCase = cases.find(caseInfo => caseInfo.pos[0] === but[0] && caseInfo.pos[1] === but[1]);
+            let satiete = c1[j].get("satiete");
+            let hydratation = c1[j].get("hydratation");
             c1[j].set("posActuelle", but);
             console.log("déplacer vers la case "+but);
-            console.dir(c1);
-            
+            switch (nouvelleCase.couleur){
+                case "#3498DB": // case eau
+                    c1[j].set("hydratation", hydratation+3);
+                    break;
+                case "#8BC34A": // case prairie
+                    c1[j].set("satiete", satiete+2);
+                    break;
+                case "#FF003B": // tanière
+                    if(nouvelleCase.nbOccupants == 1 && nouvelleCase.occupant != c1[j].get("sexe") && i-c1[j].get("tourDernierEnfant") > 5){
+                        reprodution(c1[j], nouvelleCase.occupant);
+                        io.emit('reproduction', c1[j].get("couleur"));
+                        c1[j].set("tourDernierEnfant", i);
+                    }
+                    else{
+                        nouvelleCase.nbOccupants = 1;
+                        nouvelleCase.occupant = c1[j];
+                    }
+            }
+            c1[j].set("satiete", satiete-0.5);
+            c1[j].set("hydratation", hydratation-1);
+            if(satiete <= 0 || hydratation <= 0){
+                io.emit('mort', c1[j]);
+                c1.splice(j, 1);
+            }
             // reproduction : si tourDernierEnfant == 0 => peut se reproduire direct sinon comparer au tour actuel et vérifier que tourActuel - tourDernierEnfant > 5
-            // s'occuper de concurrence pour une case
+            // s'occuper de concurrence pour une case directement dans la fonmction deplacer enregistrer l'occupant dans la case occupée
             //décrémenter et ou augmenter fonctions vitales
         }
         //attendre 1 sec
@@ -257,7 +275,10 @@ function partie(){
         }
         else{
             for(j = 0; j < c2.length; j ++){
-                deplacer(c2[j]);
+                let but = deplacer(c2[j]);
+                c2[j].set("posActuelle", but);
+                console.log("déplacer vers la case "+but);
+                console.dir(c2);
                 // s'occuper du cas de reproduction et de concurrence pour une case
                 //décrémenter et ou augmenter fonctions vitales
             }
@@ -268,7 +289,10 @@ function partie(){
             }
             else{
                 for(j = 0; j < c3.length; j ++){
-                    deplacer(c3[j]);
+                    let but = deplacer(c3[j]);
+                    c3[j].set("posActuelle", but);
+                    console.log("déplacer vers la case "+but);
+                    console.dir(c3);
                     // s'occuper du cas de reproduction et de concurrence pour une case
                     //décrémenter et ou augmenter fonctions vitales
                 }
