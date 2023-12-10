@@ -50,11 +50,13 @@ function nbAleatoire() {
 
 function deplacer(c){
     let taniere = c.get("taniere");
-    positionCible = positionInitiale = c.get("posActuelle");
+    let position = c.get("posActuelle");
+    let but;
+    console.log("position initiale : "+position[0]+","+position[1]);
     let perception = c.get("perception");
     let satiete = c.get("satiete");
     let hydratation = c.get("hydratation");
-    let voisinsPossibles = [0,0];
+    let voisinsPossibles = [[0,0]];
     if(perception >= 1){
         voisinsPossibles.push(...[[0,1],[0,-1],[1,0],[1,-1],[-1,0],[-1,1]]);// ... permet de push chaque élément d'un coup et non la liste de tous les éléments
     }     // il faut que le non-déplacement soit possible, ie, s'il est sur une case qui va lui servir plusieurs tours il y reste, donc il faut compter la case actuelle comme voisin d'où le [0,0]
@@ -72,32 +74,33 @@ function deplacer(c){
     }
     let voisins = [];
     for(i = 0; i<voisinsPossibles.length; i++){
-        let voisin = [positionCible[0]+voisinsPossibles[i][0],positionCible[1]+voisinsPossibles[i][1]];
+        let voisin = [position[0]+voisinsPossibles[i][0],position[1]+voisinsPossibles[i][1]];
         if(positionsPossibles.some(p => p[0] === voisin[0] && p[1] === voisin[1])){ // .includes ne suffit pas car les éléments sont des tableaux
             voisins.push(voisin);
         }
     }
 
-    function seRapprocherDe(Case){
-        if(positionInitiale[0] > Case[0]){
+    function seRapprocherDe(Objectif){
+        let positionCible = [...position];
+        if(position[0] > Objectif[0]){
             positionCible[0] -= 1;
         }
-        if(positionInitiale[0] < Case[0]){
+        if(position[0] < Objectif[0]){
             positionCible[0] += 1;
         }
-        if(positionInitiale[1] > Case[1]){
+        if(position[1] > Objectif[1]){
             positionCible[1] -= 1;
         }
-        if(positionInitiale[1] < Case[1]){
+        if(position[1] < Objectif[1]){
             positionCible[1] += 1;
         }
+        console.log("position cible : "+positionCible[0]+","+positionCible[1]);
+        return positionCible;
     }
-    console.log("ma faim : " + satiete + " ma soif : " + hydratation);
-    if(reproductionPossible == 1 && c.get("satiete") >= 6.0){ // priorité à la reproduction
-        seRapprocherDe(taniere); //
+    if(reproductionPossible == 1 && satiete >= 6.0){ // priorité à la reproduction
+        but = seRapprocherDe(taniere); //
     }
     else{ //continuer d'augmenter ses fonctions (soit parce qu'on doit attendre le 3 eme tour soit parce qu'on est pas assez nourri)
-        console.log("je veux donc continuer a augmenter mes fonctions");
         function Distance(p1, p2) {
             const dx = p1[0] - p2[0];
             const dy = p1[1] - p2[1];
@@ -105,14 +108,14 @@ function deplacer(c){
         }
         
         function caseLaPlusProche(listeCases) {
-            let plusProche = listeCases[0];
-            let distanceMin = Distance(positionInitiale, plusProche);
+            let plusProche = listeCases[0].pos;
+            let distanceMin = Distance(position, plusProche);
         
             for (let i = 1; i < listeCases.length; i++) {
-                const distance = Distance(positionInitiale, listeCases[i]);
+                const distance = Distance(position, listeCases[i].pos);
                 if (distance < distanceMin) {
                     distanceMin = distance;
-                    plusProche = listeCases[i];
+                    plusProche = listeCases[i].pos;
                 }
             }
             return plusProche;
@@ -131,28 +134,29 @@ function deplacer(c){
         }
         if(casesEau.length >= 1 || casesPrairie.length >= 1){    // alors on a des cases de ressources intéressantes
             if(casesEau.length >= 1){
-                seRapprocherDe(caseLaPlusProche(casesEau));
+                console.log("je veux aller vers l'eau");
+                but = seRapprocherDe(caseLaPlusProche(casesEau));
                 if(casesPrairie.length >= 1){
                     if(hydratation > satiete){
-                        seRapprocherDe(caseLaPlusProche(casesPrairie)); // car on a plus rapidement soif que faim d'où le > et pas le >=
+                        console.log("je veux aller vers la prairie");
+                        but = seRapprocherDe(caseLaPlusProche(casesPrairie)); // car on a plus rapidement soif que faim d'où le > et pas le >=
                     }
                 }
             }
             else{
-                seRapprocherDe(caseLaPlusProche(casesPrairie)); 
+                console.log("je veux aller vers la prairie");
+                but = seRapprocherDe(caseLaPlusProche(casesPrairie)); 
             }
         }   
         else{                                              // alors on en a pas
-            console.log("mon objectif est aléatoire");
         }
     }
-    console.log("liste des voisins : ");
-    console.log(voisins);
     console.log("cases eau : ");
     console.dir(casesEau);
     console.log("cases prairie : ");
     console.dir(casesPrairie);
-    console.log("mon objectif est "+positionCible[0]+positionCible[1]);
+
+    return but;
 }
 
 function partie(){
@@ -223,20 +227,25 @@ function partie(){
             creature.set("taniere", pos);
             creature.set("posActuelle", pos);
             creature.set("tourDernierEnfant",0);
-            toutesCréatures[i].push(creature);
+            return creature;
         }
-        creerCreature("M");
-        creerCreature("F");
+        toutesCréatures[i][0] = creerCreature("M");
+        toutesCréatures[i][1] = creerCreature("F");
     }
     io.emit('spawn', nbJoueurs);
-    
+    //console.log("toutes les créatures :");
+    //console.dir(toutesCréatures);
     //attendre 0.5 sec
     for (i = 1; i < nbTours; i ++){
         if(i == 3){
             reproductionPossible = 1;
         }
         for(j = 0; j < c1.length; j ++){
-            deplacer(c1[j]);
+            let but = deplacer(c1[j]);
+            c1[j].set("posActuelle", but);
+            console.log("déplacer vers la case "+but);
+            console.dir(c1);
+            
             // reproduction : si tourDernierEnfant == 0 => peut se reproduire direct sinon comparer au tour actuel et vérifier que tourActuel - tourDernierEnfant > 5
             // s'occuper de concurrence pour une case
             //décrémenter et ou augmenter fonctions vitales
