@@ -76,7 +76,6 @@ function deplacer(c){
     }
 
     function seRapprocherDe(Objectif){
-        let positionCible = [...position];
         let positionCible = [...position]; // "..." : pour passer position en copie pour éviter que toutes les positions de l'espèce ne soient changées
         if(position[0] > Objectif[0]){
             positionCible[0] -= 1;
