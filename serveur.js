@@ -155,8 +155,12 @@ function deplacer(c) {
     console.log("Je vais donc vers la case : " + but);
     if (caseObjectif.occupants.length == 1 && couleurs.indexOf(caseObjectif.couleur) === -1) { // si il y a déjà quelqu'un et que la case n'est pas une tanière de quelque espèce que ce soit (si la couleur de la caseObjectif n'est pas parmi la liste des couleurs des tanières)
         // ça veut dire qu'on est sur une case roche prairie ou eau occupée
-        //faire le test des deux forces et renvoyer le perdant dans un voisin aléatoire
+        //faire le test des deux forces et renvoyer le perdant dans un voisin aléatoire et attribuer ce voisin à caseObjectif et faire but = seRapprocherDe(caseObjectif)
     }
+    let indiceCase = cases.findIndex(function(caseCourante) {
+        return caseCourante.pos[0] == caseObjectif.pos[0] && caseCourante.pos[1] == caseObjectif.pos[1];
+    });
+    cases[indiceCase].occupants.push(c); // ajout de la créature dans la liste des occupants de sa caseObjectif
     return but;
 }
 
