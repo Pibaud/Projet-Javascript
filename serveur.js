@@ -9,7 +9,7 @@ app.use('/public', express.static('public', { 'extensions': ['css'] }));
 app.use(express.static('public'));
 
 app.get('/', (request, response) => {
-    response.sendFile('Projet.html', {root: __dirname});
+    response.sendFile('projet.html', {root: __dirname});
 });
 
 var nbJoueurs;
