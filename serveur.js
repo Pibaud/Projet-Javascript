@@ -1,17 +1,14 @@
+
 const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const io = require("socket.io")(server);
-
 app.use('/public', express.static('public', { 'extensions': ['css'] }));
-
 app.use(express.static('public'));
-
 app.get('/', (request, response) => {
-    response.sendFile('projet.html', {root: __dirname});
+    response.sendFile('Projet.html', {root: __dirname});
 });
-
 var nbJoueurs;
 var nbTours;
 var cases = []; // pos : [colonne, ligne] (faire ligne*13+colonne pour avoir l'id cote client) couleur : code couleur, occupée : 0 1 2 
@@ -34,7 +31,6 @@ for (l=0; l < 13; l++) {
 server.listen(8888, () => {
     console.log('Le serveur écoute sur le port 8888');
 });
-
 function nbAleatoire() {
     var x = Math.random() * 100;
     if (x < 15){
@@ -47,7 +43,6 @@ function nbAleatoire() {
        return 3;
     }
 }
-
 function deplacer(c){
     let taniere = c.get("taniere");
     let position = c.get("posActuelle");
@@ -81,6 +76,7 @@ function deplacer(c){
     }
 
     function seRapprocherDe(Objectif){
+        let positionCible = [...position];
         let positionCible = [...position]; // "..." : pour passer position en copie pour éviter que toutes les positions de l'espèce ne soient changées
         if(position[0] > Objectif[0]){
             positionCible[0] -= 1;
@@ -97,6 +93,7 @@ function deplacer(c){
         console.log("position cible : "+positionCible[0]+","+positionCible[1]);
         return positionCible;
     }
+    if(reproductionPossible == 1 && satiete >= 6.0){ // priorité à la reproduction
     if(reproductionPossible == 1 && satiete >= 6.0){ // priorité à la reproduction et la garder jusqu'à sa mort (faire un autre if au dessus pour savoir si on est deja dans une taniere si oui y rester)
         but = seRapprocherDe(taniere); //
     }
@@ -120,7 +117,6 @@ function deplacer(c){
             }
             return plusProche;
         }
-
         var casesEau = [];
         var casesPrairie = [];
         for(i = 0; i < voisins.length; i ++){
@@ -151,6 +147,11 @@ function deplacer(c){
         else{                                              // alors on en a pas
         }
     }
+    console.log("cases eau : ");
+    console.dir(casesEau);
+    console.log("cases prairie : ");
+    console.dir(casesPrairie);
+
     return but;
 }
 
@@ -209,7 +210,6 @@ function partie(){
         }
         caseCourante = cases.find(caseInfo => caseInfo.pos[0] === pos[0] && caseInfo.pos[1] === pos[1]);
         caseCourante.population = 1;
-
         function creerCreature(sexe) {
             let creature = new Map();
             creature.set("sexe", sexe);
@@ -228,6 +228,9 @@ function partie(){
         toutesCréatures[i][1] = creerCreature("F");
     }
     io.emit('spawn', nbJoueurs);
+    //console.log("toutes les créatures :");
+    //console.dir(toutesCréatures);
+    //attendre 0.5 sec
     //attendre 3 sec
     for (i = 1; i < nbTours; i ++){
         if(i == 3){
@@ -240,6 +243,8 @@ function partie(){
             let hydratation = c1[j].get("hydratation");
             c1[j].set("posActuelle", but);
             console.log("déplacer vers la case "+but);
+            console.dir(c1);
+
             switch (nouvelleCase.couleur){
                 case "#3498DB": // case eau
                     c1[j].set("hydratation", hydratation+3);
@@ -265,6 +270,7 @@ function partie(){
                 c1.splice(j, 1);
             }
             // reproduction : si tourDernierEnfant == 0 => peut se reproduire direct sinon comparer au tour actuel et vérifier que tourActuel - tourDernierEnfant > 5
+            // s'occuper de concurrence pour une case
             // s'occuper de concurrence pour une case directement dans la fonmction deplacer enregistrer l'occupant dans la case occupée
             //décrémenter et ou augmenter fonctions vitales
         }
@@ -275,6 +281,7 @@ function partie(){
         }
         else{
             for(j = 0; j < c2.length; j ++){
+                deplacer(c2[j]);
                 let but = deplacer(c2[j]);
                 c2[j].set("posActuelle", but);
                 console.log("déplacer vers la case "+but);
@@ -289,6 +296,7 @@ function partie(){
             }
             else{
                 for(j = 0; j < c3.length; j ++){
+                    deplacer(c3[j]);
                     let but = deplacer(c3[j]);
                     c3[j].set("posActuelle", but);
                     console.log("déplacer vers la case "+but);
@@ -315,9 +323,7 @@ function partie(){
     }
     //l'espèce avec la plus grande population gagne
 }
-
 io.on('connection', (socket) => {
-
     socket.on('creation', data => {
         console.log(data.nom+" crée la partie");
         let joueur = new Map();
@@ -339,7 +345,6 @@ io.on('connection', (socket) => {
             socket.broadcast.emit('creation',joueur);
         }
     });
-
     socket.on('entree', data => {
         if (joueurs.length < nbJoueurs)
             if (!joueurs.some(joueur => joueur.get('name') === data.nom)) {
@@ -369,7 +374,6 @@ io.on('connection', (socket) => {
             else socket.emit('messageServeur', 'Nom de joueur déjà enregistré');
         else socket.emit('messageServeur', 'Nombre de joueurs maximal déjà atteint !');
     });
-
     socket.on('sortie', nomJoueur => {
         console.log("Sortie de la partie de "+nomJoueur);
         let index = joueurs.indexOf(nomJoueur)
@@ -387,7 +391,6 @@ io.on('connection', (socket) => {
         }
         else socket.emit('messageServeur', 'Joueur inconnu');
     });
-
     socket.on('demandeNbJoueurs', function(){
         socket.emit('nbJoueurs', {'nombreMax':nbJoueurs,'nbActuel':joueurs.length});
     });
