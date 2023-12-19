@@ -394,3 +394,4 @@ io.on('connection', (socket) => {
         socket.emit('nbJoueurs', {'nombreMax':nbJoueurs,'nbActuel':joueurs.length});
     });
 });
+}
