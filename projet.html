@@ -1,341 +1,380 @@
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
-      <title>Le Jeu de la Vie</title>
-      <link rel="stylesheet" href="/public/style.css">
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-      <script src="https://d3js.org/d3.v5.min.js"></script> 
-      <script src="/socket.io/socket.io.js"></script>
-      <script> var socket = io(); </script>
-      <script>
 
-         var nbLignes = nbColonnes = 13;
-         var rayon = 35;
-         const coteCarre = coteTriangle = 20;
-         var numJoueur = -1;
-         const nbMaxJoueurs = 4;
+<head>
+   <title>Le Jeu de la Vie</title>
+   <link rel="stylesheet" href="/public/style.css">
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+   <script src="https://d3js.org/d3.v5.min.js"></script>
+   <script src="/socket.io/socket.io.js"></script>
+   <script> var socket = io(); </script>
+   <script>
 
-         function creerLaPartie(){
-            let nom = document.getElementById("nom").value;
-            let nbJoueurs = parseInt(document.getElementById("nbJoueurs").value,10);
-            let nbTours = parseInt(document.getElementById("nbTours").value,10);
-            let reproduction = parseInt(document.getElementById("reproduction").value,10);
-            let perception = parseInt(document.getElementById("perception").value,10);
-            let force = parseInt(document.getElementById("force").value,10);
-            if (nom != "" && nom != " " && (reproduction + perception + force) <= 9){
-               $("#creerLaPartie").css("display","none");
-               $("#entrerDansLaPartie").css("display","none");
-               $("#quitterLaPartie").css("display","inline");
-               $("#tousRépartis").css("display","none");
-               socket.emit('creation', {'nom':nom, 'nbJoueurs':nbJoueurs, 'nbTours':nbTours, 'reproduction':reproduction, 'perception':perception, 'force':force});
-            }
-            else{
-               $("#tousRépartis").css("display","inline");
-            }
+      var nbLignes = nbColonnes = 13;
+      var rayon = 35;
+      const coteCarre = coteTriangle = 20;
+      var numJoueur = -1;
+      const nbMaxJoueurs = 4;
+
+      function creerLaPartie() {
+         let nom = document.getElementById("nom").value;
+         let nbJoueurs = parseInt(document.getElementById("nbJoueurs").value, 10);
+         let nbTours = parseInt(document.getElementById("nbTours").value, 10);
+         let reproduction = parseInt(document.getElementById("reproduction").value, 10);
+         let perception = parseInt(document.getElementById("perception").value, 10);
+         let force = parseInt(document.getElementById("force").value, 10);
+         if (nom != "" && nom != " " && (reproduction + perception + force) <= 9) {
+            $("#creerLaPartie").css("display", "none");
+            $("#entrerDansLaPartie").css("display", "none");
+            $("#quitterLaPartie").css("display", "inline");
+            $("#tousRépartis").css("display", "none");
+            socket.emit('creation', { 'nom': nom, 'nbJoueurs': nbJoueurs, 'nbTours': nbTours, 'reproduction': reproduction, 'perception': perception, 'force': force });
          }
-
-         function entrerDansLaPartie() {  
-            let nom = document.getElementById("nom").value;
-            let reproduction = parseInt(document.getElementById("reproduction").value,10);
-            let perception = parseInt(document.getElementById("perception").value,10);
-            let force = parseInt(document.getElementById("force").value,10);
-            if (nom != "" && nom != " "){
-               $("#quitterLaPartie").css("display","inline");
-               $("#entrerDansLaPartie").css("display","none");
-               socket.emit('entree', {'nom':nom, 'reproduction':reproduction, 'perception':perception, 'force':force});
-            }
+         else {
+            $("#tousRépartis").css("display", "inline");
          }
+      }
 
-         function quitterLaPartie() {
-            let nom = document.getElementById("nom").value;
-            console.log("Sortie de "+nom);
-           
-            if (nom != "" && nom != " ") socket.emit('sortie', nom);
+      function entrerDansLaPartie() {
+         let nom = document.getElementById("nom").value;
+         let reproduction = parseInt(document.getElementById("reproduction").value, 10);
+         let perception = parseInt(document.getElementById("perception").value, 10);
+         let force = parseInt(document.getElementById("force").value, 10);
+         if (nom != "" && nom != " ") {
+            $("#quitterLaPartie").css("display", "inline");
+            $("#entrerDansLaPartie").css("display", "none");
+            socket.emit('entree', { 'nom': nom, 'reproduction': reproduction, 'perception': perception, 'force': force });
          }
+      }
 
-         function creePointsHexagone(rayon) { // Calcul des coordonnées des six points d'un hexagone
-            var points = new Array();
-            for (var i = 0; i < 6; ++i) {
-                  var angle = i * Math.PI / 3;
-                  var x = Math.sin(angle) * rayon;
-                  var y = -Math.cos(angle) * rayon;
-                  points.push([Math.round(x*100)/100, Math.round(y*100)/100]);
-            }
-            return points;
+      function quitterLaPartie() {
+         let nom = document.getElementById("nom").value;
+         console.log("Sortie de " + nom);
+
+         if (nom != "" && nom != " ") socket.emit('sortie', nom);
+      }
+
+      function creePointsHexagone(rayon) { // Calcul des coordonnées des six points d'un hexagone
+         var points = new Array();
+         for (var i = 0; i < 6; ++i) {
+            var angle = i * Math.PI / 3;
+            var x = Math.sin(angle) * rayon;
+            var y = -Math.cos(angle) * rayon;
+            points.push([Math.round(x * 100) / 100, Math.round(y * 100) / 100]);
          }
+         return points;
+      }
 
-         function genereTerrain(rayon, nbLignes, nbColonnes) {
-            let distance =  rayon - (Math.sin(1 * Math.PI / 3) * rayon); // distance entre deux hexagones
-            d3.select("#tablier").append("svg").attr("id","svgTablier").attr("width", nbColonnes*1.33*2*rayon).attr("height",nbLignes*2*rayon);
-            let hexagone = creePointsHexagone(rayon);
-            for (let ligne=0; ligne < nbLignes; ligne++) {
-               for (let colonne=0; colonne < nbColonnes; colonne++) {
-                  let d = "", x, y;
-                  for (h in hexagone) {
-                     x = hexagone[h][0]+(rayon-distance)*(2+ligne+2*colonne);
-                     y = distance*2 + hexagone[h][1]+(rayon-distance*2)*(1+2*ligne);
-                     if (h == 0) d += "M"+x+","+y+" L";
-                     else        d +=     x+","+y+" ";
-                  }
-                  d += "Z";
-                  d3.select("#svgTablier")
+      function genereTerrain(rayon, nbLignes, nbColonnes) {
+         let distance = rayon - (Math.sin(1 * Math.PI / 3) * rayon); // distance entre deux hexagones
+         d3.select("#tablier").append("svg").attr("id", "svgTablier").attr("width", nbColonnes * 1.33 * 2 * rayon).attr("height", nbLignes * 2 * rayon);
+         let hexagone = creePointsHexagone(rayon);
+         for (let ligne = 0; ligne < nbLignes; ligne++) {
+            for (let colonne = 0; colonne < nbColonnes; colonne++) {
+               let d = "", x, y;
+               for (h in hexagone) {
+                  x = hexagone[h][0] + (rayon - distance) * (2 + ligne + 2 * colonne);
+                  y = distance * 2 + hexagone[h][1] + (rayon - distance * 2) * (1 + 2 * ligne);
+                  if (h == 0) d += "M" + x + "," + y + " L";
+                  else d += x + "," + y + " ";
+               }
+               d += "Z";
+               d3.select("#svgTablier")
                   .append("g")
                   .attr("id", "g" + (ligne * nbLignes + colonne))
                   .attr("data-x", x) // utiles pour afficher les créatures
-                  .attr("data-y", y)
-                  .attr("pos",[colonne, ligne])
+                  .attr("data-y", y) // utiles pour afficher les créatures
+                  .attr("pos", [colonne, ligne])
                   .append("path")
                   .attr("d", d)
                   .attr("stroke", "black")
                   .attr("fill", "white")
                   .attr("class", "hexagoneDamier")
-                  .attr("pos",[colonne, ligne])
+                  .attr("pos", [colonne, ligne])
                   .attr("id", "h" + (ligne * nbLignes + colonne)); // car un id doit commencer par une lettre
-               }
+            }
+         }
+      }
+
+      function colorationTerrain(cases, nbJoueurs) {
+         for (let ligne = 0; ligne < 13; ligne++) {
+            for (let colonne = 0; colonne < 13; colonne++) {
+               let positionCase = [colonne, ligne];
+               let caseCourante = cases.find(caseInfo => caseInfo.pos[0] === positionCase[0] && caseInfo.pos[1] === positionCase[1]);
+               let idGroupe = "#g" + (ligne * 13 + colonne);
+               d3.select(idGroupe + " path").attr("fill", caseCourante.couleur);
             }
          }
 
-         function colorationTerrain(cases, nbJoueurs) {
-            for (let ligne = 0; ligne < 13; ligne++) {
-               for (let colonne = 0; colonne < 13; colonne++) {
-                     let positionCase = [colonne, ligne];
-                     let caseCourante = cases.find(caseInfo => caseInfo.pos[0] === positionCase[0] && caseInfo.pos[1] === positionCase[1]);
-                     let idGroupe = "#g" + (ligne * 13 + colonne);
-                     d3.select(idGroupe + " path").attr("fill", caseCourante.couleur);
-               }
-            }
+         if (nbJoueurs >= 1) {
+            d3.select("#g78 path").attr("fill", "#FF003B");
+         }
+         if (nbJoueurs >= 2) {
+            d3.select("#g90 path").attr("fill", "#C400FF");
+         }
+         if (nbJoueurs >= 3) {
+            d3.select("#g162 path").attr("fill", "#F1C40F");
+         }
+         if (nbJoueurs == 4) {
+            d3.select("#g6 path").attr("fill", "#FF8BF1");
+         }
+      }
 
-            if (nbJoueurs >= 1) {
-               d3.select("#g78 path").attr("fill", "#FF003B");
-            }
-            if (nbJoueurs >= 2) {
-               d3.select("#g90 path").attr("fill", "#C400FF");
-            }
-            if (nbJoueurs >= 3) {
-               d3.select("#g162 path").attr("fill", "#F1C40F");
-            }
-            if (nbJoueurs == 4) {
-               d3.select("#g6 path").attr("fill", "#FF8BF1");
-            }
+
+      window.addEventListener('load', (event) => {
+         $("#tousRépartis").css("display", "none");
+         console.log("demande de joueurs ...");
+         socket.emit('demandeNbJoueurs');
+         genereTerrain(rayon, nbLignes, nbColonnes);
+         document.getElementById("tablier").style.display = "none";
+      });
+
+      socket.on('creation', data => {
+         $("#creerLaPartie").css("display", "none");
+         $("#quitterLaPartie").css("display", "none");
+         $("#entrerDansLaPartie").css("display", "inline");
+         $("#infosCreateur").css("display", "none");
+      });
+
+      socket.on('joueurs', nomsJoueurs => {
+         console.log("joueurs reçus du serveur : ");
+         console.dir(nomsJoueurs);
+         $("#listeJoueurs").text(nomsJoueurs);
+      });
+
+      socket.on('nbJoueurs', data => {
+         console.log("joueurs reçus :");
+         console.dir(data);
+         if (data.nbActuel > 0) {
+            $("#creerLaPartie").css("display", "none");
+            $("#quitterLaPartie").css("display", "none");
+            $("#entrerDansLaPartie").css("display", "inline");
+            $("#infosCreateur").css("display", "none");
+         }
+         else {
+            $("#creerLaPartie").css("display", "inline");
+            $("#quitterLaPartie").css("display", "none");
+            $("#entrerDansLaPartie").css("display", "none");
+         }
+      });
+
+      socket.on('entree', data => {
+         numJoueur = data.numJoueur;
+         console.log("Le serveur confirme mon entrée avec numJoueur=" + numJoueur);
+         $("#listeJoueurs").text(data.nomsJoueurs);
+      });
+
+      socket.on('entreeAutreJoueur', data => {
+         console.log("Le serveur confirme l'entrée de " + data.nomJoueur);
+         $("#listeJoueurs").text(data.nomsJoueurs);
+      });
+
+      socket.on('sortie', data => {
+         console.log("Le serveur confirme ma sortie");
+         numJoueur = -1;
+         document.getElementById("nom").value = "";
+         $("#listeJoueurs").text(data.nomsJoueurs);
+      });
+
+      socket.on('sortieAutreJoueur', data => {
+         console.log("Le serveur confirme la sortie de " + data.nomJoueur);
+         numJoueur = data.numJoueur;
+         $("#listeJoueurs").text(data.nomsJoueurs);
+      });
+
+      socket.on('messageServeur', message => {
+         if (message == "La partie solo commence") {
+            numJoueur = 0;
+         }
+         console.log("Message serveur : ", message);
+         $("#messageServeur").text(message);
+      });
+
+      socket.on('cases', data => {
+         colorationTerrain(data.cases, data.nbJoueurs);
+         console.log("coloration du terrain");
+         document.getElementById("tablier").style.display = "inline";
+      });
+
+      socket.on('spawn', nbJoueurs => {
+         if (nbJoueurs >= 1) {
+            var groupe = d3.select("#g78"); // Remplacez 78 par l'ID de l'hexagone spécifique
+            var x = +groupe.attr("data-x"); // Convertissez en nombre
+            var y = +groupe.attr("data-y"); // Convertissez en nombre
+            groupe.append("rect")
+               .attr("width", coteCarre)
+               .attr("height", coteCarre)
+               .attr("x", x + 5)
+               .attr("y", y + 7.5)
+               .attr("stroke", "black")
+               .attr("fill", "#FF003B");
+
+            groupe.append("circle")
+               .attr("cx", x + 45)
+               .attr("cy", y + 17.5)
+               .attr("r", coteCarre / 2)
+               .attr("stroke", "black")
+               .attr("fill", "#FF003B");
+         }
+         if (nbJoueurs >= 2) {
+            var groupe = d3.select("#g90"); // Remplacez 78 par l'ID de l'hexagone spécifique
+            var x = +groupe.attr("data-x"); // Convertissez en nombre
+            var y = +groupe.attr("data-y"); // Convertissez en nombre
+            groupe.append("rect")
+               .attr("width", coteCarre)
+               .attr("height", coteCarre)
+               .attr("x", x + 5)
+               .attr("y", y + 7.5)
+               .attr("stroke", "black")
+               .attr("fill", "#C400FF");
+
+            groupe.append("circle")
+               .attr("cx", x + 45)
+               .attr("cy", y + 17.5)
+               .attr("r", coteCarre / 2)
+               .attr("stroke", "black")
+               .attr("fill", "#C400FF");
+         }
+         if (nbJoueurs >= 3) {
+            var groupe = d3.select("#g162"); // Remplacez 78 par l'ID de l'hexagone spécifique
+            var x = +groupe.attr("data-x"); // Convertissez en nombre
+            var y = +groupe.attr("data-y"); // Convertissez en nombre
+            groupe.append("rect")
+               .attr("width", coteCarre)
+               .attr("height", coteCarre)
+               .attr("x", x + 5)
+               .attr("y", y + 7.5)
+               .attr("stroke", "black")
+               .attr("fill", "#F1C40F");
+
+            groupe.append("circle")
+               .attr("cx", x + 45)
+               .attr("cy", y + 17.5)
+               .attr("r", coteCarre / 2)
+               .attr("stroke", "black")
+               .attr("fill", "#F1C40F");
+         }
+         if (nbJoueurs == 4) {
+            var groupe = d3.select("#g6"); // Remplacez 78 par l'ID de l'hexagone spécifique
+            var x = +groupe.attr("data-x"); // Convertissez en nombre
+            var y = +groupe.attr("data-y"); // Convertissez en nombre
+            groupe.append("rect")
+               .attr("width", coteCarre)
+               .attr("height", coteCarre)
+               .attr("x", x + 5)
+               .attr("y", y + 7.5)
+               .attr("stroke", "black")
+               .attr("fill", "#FF8BF1");
+
+            groupe.append("circle")
+               .attr("cx", x + 45)
+               .attr("cy", y + 17.5)
+               .attr("r", coteCarre / 2)
+               .attr("stroke", "black")
+               .attr("fill", "#FF8BF1");
+         }
+      });
+
+      socket.on('deplacer', (data) => {
+         let idAncienGroupe = "#g" + (data.anciennePosition[1] * 13 + data.anciennePosition[0]);
+         let idNouveauGroupe = "#g" + (data.nouvellePosition[1] * 13 + data.nouvellePosition[0]);
+         console.log("vider le groupe "+idAncienGroupe+" et remplir le groupe "+idNouveauGroupe);
+
+         let ancienGroupe = d3.select(idAncienGroupe);
+         if (data.sexe == "M") {
+            ancienGroupe.select("rect").remove();
+         } else {
+            ancienGroupe.select("circle").remove();
          }
 
+         let nouveauGroupe = d3.select(idNouveauGroupe);
 
-         window.addEventListener('load', (event) => {
-            $("#tousRépartis").css("display","none");
-            console.log("demande de joueurs ...");
-            socket.emit('demandeNbJoueurs');
-            genereTerrain(rayon, nbLignes, nbColonnes);
-            document.getElementById("tablier").style.display = "none";
-         });
-         
-         socket.on('creation',data => {
-            $("#creerLaPartie").css("display","none");
-            $("#quitterLaPartie").css("display","none");
-            $("#entrerDansLaPartie").css("display","inline");
-            $("#infosCreateur").css("display","none");
-         });
-         
-         socket.on('joueurs', nomsJoueurs => {
-            console.log("joueurs reçus du serveur : ");
-            console.dir(nomsJoueurs);
-            $("#listeJoueurs").text(nomsJoueurs);
-         });
+         var xNouvelle = +nouveauGroupe.attr("data-x"); // Convertissez en nombre
+         var yNouvelle = +nouveauGroupe.attr("data-y"); // Convertissez en nombre
 
-         socket.on('nbJoueurs',data =>{
-            console.log("joueurs reçus :");
-            console.dir(data);
-            if(data.nbActuel > 0){
-               $("#creerLaPartie").css("display","none");
-               $("#quitterLaPartie").css("display","none");
-               $("#entrerDansLaPartie").css("display","inline");
-               $("#infosCreateur").css("display","none");
-            }
-            else{
-               $("#creerLaPartie").css("display","inline");
-               $("#quitterLaPartie").css("display","none");
-               $("#entrerDansLaPartie").css("display","none");
-            }
-         });
+         if (data.sexe == "M") {
+            nouveauGroupe.append("rect")
+               .attr("width", coteCarre)
+               .attr("height", coteCarre)
+               .attr("x", xNouvelle + 20)
+               .attr("y", yNouvelle + 7)
+               .attr("stroke", "black")
+               .attr("fill", data.couleur);
+         } else {
+            nouveauGroupe.append("circle")
+               .attr("cx", xNouvelle + 30)
+               .attr("cy", yNouvelle + 17)
+               .attr("r", coteCarre / 2)
+               .attr("stroke", "black")
+               .attr("fill", data.couleur);
+         }
+      });
 
-         socket.on('entree', data => {
-            numJoueur = data.numJoueur;
-            console.log("Le serveur confirme mon entrée avec numJoueur="+numJoueur);
-            $("#listeJoueurs").text(data.nomsJoueurs);
-         });
+   </script>
+</head>
 
-         socket.on('entreeAutreJoueur', data => {
-            console.log("Le serveur confirme l'entrée de "+data.nomJoueur);
-            $("#listeJoueurs").text(data.nomsJoueurs);
-         });
-
-         socket.on('sortie', data => {
-            console.log("Le serveur confirme ma sortie");
-            numJoueur = -1;
-            document.getElementById("nom").value = "";
-            $("#listeJoueurs").text(data.nomsJoueurs);
-         });
-
-         socket.on('sortieAutreJoueur', data => {
-            console.log("Le serveur confirme la sortie de "+data.nomJoueur);   
-            numJoueur = data.numJoueur;
-            $("#listeJoueurs").text(data.nomsJoueurs);
-         });
-
-         socket.on('messageServeur', message => {
-            if(message == "La partie solo commence"){
-               numJoueur = 0;
-            }
-            console.log("Message serveur : ", message);
-            $("#messageServeur").text(message); 
-         });
-
-         socket.on('cases', data =>{
-            colorationTerrain(data.cases, data.nbJoueurs);
-            console.log("coloration du terrain");
-            document.getElementById("tablier").style.display = "inline";
-         });
-
-         socket.on('spawn', nbJoueurs =>{
-            if (nbJoueurs >= 1) {
-               var groupe = d3.select("#g78"); // Remplacez 78 par l'ID de l'hexagone spécifique
-               var x = +groupe.attr("data-x"); // Convertissez en nombre
-               var y = +groupe.attr("data-y"); // Convertissez en nombre
-               groupe.append("rect")
-                  .attr("width", coteCarre)
-                  .attr("height", coteCarre)
-                  .attr("x", x+5)
-                  .attr("y", y+7.5)
-                  .attr("stroke", "black")
-                  .attr("fill", "#FF003B");
-
-               groupe.append("circle")
-                  .attr("cx", x+45)
-                  .attr("cy", y+17.5)
-                  .attr("r", coteCarre / 2)
-                  .attr("stroke", "black")
-                  .attr("fill", "#FF003B");
-            }
-            if(nbJoueurs >= 2){
-               var groupe = d3.select("#g90"); // Remplacez 78 par l'ID de l'hexagone spécifique
-               var x = +groupe.attr("data-x"); // Convertissez en nombre
-               var y = +groupe.attr("data-y"); // Convertissez en nombre
-               groupe.append("rect")
-                  .attr("width", coteCarre)
-                  .attr("height", coteCarre)
-                  .attr("x", x+5)
-                  .attr("y", y+7.5)
-                  .attr("stroke", "black")
-                  .attr("fill", "#C400FF");
-
-               groupe.append("circle")
-                  .attr("cx", x+45)
-                  .attr("cy", y+17.5)
-                  .attr("r", coteCarre / 2)
-                  .attr("stroke", "black")
-                  .attr("fill", "#C400FF");
-            }
-            if(nbJoueurs >= 3){
-               var groupe = d3.select("#g162"); // Remplacez 78 par l'ID de l'hexagone spécifique
-               var x = +groupe.attr("data-x"); // Convertissez en nombre
-               var y = +groupe.attr("data-y"); // Convertissez en nombre
-               groupe.append("rect")
-                  .attr("width", coteCarre)
-                  .attr("height", coteCarre)
-                  .attr("x", x+5)
-                  .attr("y", y+7.5)
-                  .attr("stroke", "black")
-                  .attr("fill", "#F1C40F");
-
-               groupe.append("circle")
-                  .attr("cx", x+45)
-                  .attr("cy", y+17.5)
-                  .attr("r", coteCarre / 2)
-                  .attr("stroke", "black")
-                  .attr("fill", "#F1C40F");
-            }
-            if(nbJoueurs == 4){
-               var groupe = d3.select("#g6"); // Remplacez 78 par l'ID de l'hexagone spécifique
-               var x = +groupe.attr("data-x"); // Convertissez en nombre
-               var y = +groupe.attr("data-y"); // Convertissez en nombre
-               groupe.append("rect")
-                  .attr("width", coteCarre)
-                  .attr("height", coteCarre)
-                  .attr("x", x+5)
-                  .attr("y", y+7.5)
-                  .attr("stroke", "black")
-                  .attr("fill", "#FF8BF1");
-
-               groupe.append("circle")
-                  .attr("cx", x+45)
-                  .attr("cy", y+17.5)
-                  .attr("r", coteCarre / 2)
-                  .attr("stroke", "black")
-                  .attr("fill", "#FF8BF1");
-            }
-         });
-         
-      </script>
-  </head>
-  <body>
-      <div id ="joueurs">
-         Joueurs : <label id="listeJoueurs"></label><br><br/>
-         Votre nom <input id="nom" type="text" />
+<body>
+   <div id="joueurs">
+      Joueurs : <label id="listeJoueurs"></label><br><br />
+      Votre nom <input id="nom" type="text" />
+      <br><br>
+      <div id="infosCreateur">
+         Nombre de joueurs : <input type="number" name="nbJoueurs" id="nbJoueurs" min="1" max="4">
          <br><br>
-         <div id="infosCreateur">
-            Nombre de joueurs : <input type="number" name="nbJoueurs" id="nbJoueurs" min="1" max="4">
-            <br><br>
-            Nombre de tours : <input type="number" name="nbTours" id="nbTours" min="1" max="500">
-            <br><br>
-         </div>
-         Répartissez 9 points entre Reproduction, Perception et Force.
-         <span id="tousRépartis"><br><br>Vous avez dépassé le nombre maximal de points !</span>
+         Nombre de tours : <input type="number" name="nbTours" id="nbTours" min="1" max="500">
          <br><br>
-         Reproduction :
-         <br>
-         <div id="axe">
-            <input type="range" class="slider" id="reproduction" name="reproduction" min="1" max="5" step="1" value="1"><br>
-            <div id="graduation">
-               <span>1</span>
-               <span>2</span>
-               <span>3</span>
-               <span>4</span>
-               <span>5</span>
-            </div>
-         </div>
-         <br>
-         Perception :
-         <br>
-         <div id="axe">
-            <input type="range" class="slider" id="perception" name="perception" min="1" max="5" step="1" value="1"><br>
-            <div id="graduation">
-               <span>1</span>
-               <span>2</span>
-               <span>3</span>
-               <span>4</span>
-               <span>5</span>
-            </div>
-         </div>
-         <br>
-         Force :
-         <br>
-         <div id="axe">
-            <input type="range" class="slider" id="force" name="force" min="1" max="5" step="1" value="1"><br>
-            <div id="graduation">
-               <span>1</span>
-               <span>2</span>
-               <span>3</span>
-               <span>4</span>
-               <span>5</span>
-            </div>
-         </div>
-         <br>
-         <button type="button" id="creerLaPartie" onClick="creerLaPartie()">Créer la partie</button>
-         <button type="button" id="entrerDansLaPartie" onClick="entrerDansLaPartie()">Entrer dans la partie</button>
-         <button type="button" id="quitterLaPartie" onClick="quitterLaPartie()">Quitter la partie</button> <br/>
       </div>
-      <hr/>
-      Message du serveur : <label id="messageServeur"></label>
-      <hr/>
-         <svg id="tablier" width="1190" height="685"></svg>
-  </body>
+      Répartissez 9 points entre Reproduction, Perception et Force.
+      <span id="tousRépartis"><br><br>Vous avez dépassé le nombre maximal de points !</span>
+      <br><br>
+      Reproduction :
+      <br>
+      <div id="axe">
+         <input type="range" class="slider" id="reproduction" name="reproduction" min="1" max="5" step="1"
+            value="1"><br>
+         <div id="graduation">
+            <span>1</span>
+            <span>2</span>
+            <span>3</span>
+            <span>4</span>
+            <span>5</span>
+         </div>
+      </div>
+      <br>
+      Perception :
+      <br>
+      <div id="axe">
+         <input type="range" class="slider" id="perception" name="perception" min="1" max="5" step="1" value="1"><br>
+         <div id="graduation">
+            <span>1</span>
+            <span>2</span>
+            <span>3</span>
+            <span>4</span>
+            <span>5</span>
+         </div>
+      </div>
+      <br>
+      Force :
+      <br>
+      <div id="axe">
+         <input type="range" class="slider" id="force" name="force" min="1" max="5" step="1" value="1"><br>
+         <div id="graduation">
+            <span>1</span>
+            <span>2</span>
+            <span>3</span>
+            <span>4</span>
+            <span>5</span>
+         </div>
+      </div>
+      <br>
+      <button type="button" id="creerLaPartie" onClick="creerLaPartie()">Créer la partie</button>
+      <button type="button" id="entrerDansLaPartie" onClick="entrerDansLaPartie()">Entrer dans la partie</button>
+      <button type="button" id="quitterLaPartie" onClick="quitterLaPartie()">Quitter la partie</button> <br />
+   </div>
+   <hr />
+   Message du serveur : <label id="messageServeur"></label>
+   <hr />
+   <svg id="tablier" width="1190" height="685"></svg>
+</body>
+
 </html>
