@@ -344,7 +344,6 @@ function partie() {
             }
             // reproduction : si tourDernierEnfant == 0 => peut se reproduire direct sinon comparer au tour actuel et vérifier que tourActuel - tourDernierEnfant > 5
             // s'occuper de concurrence pour une case directement dans la fonmction deplacer enregistrer l'occupants dans la case occupée
-            //décrémenter et ou augmenter fonctions vitales
         }
         //attendre 1 sec
         jeton++;
@@ -352,13 +351,15 @@ function partie() {
             jeton = 0;
         }
         else {
-            for (j = 0; j < c1.length; j++) {
-                console.log("avant déplacement de l'espèce 2 :");
-                console.dir(c2[j]);
+            for (j = 0; j < c2.length; j++) {
                 let but = deplacer(c2[j]);
                 let nouvelleCase = cases.find(caseInfo => caseInfo.pos[0] === but[0] && caseInfo.pos[1] === but[1]);
+                let PositionCaseAVider = c2[j].get("posActuelle");
+                let caseAVider = cases.find(caseInfo => caseInfo.pos[0] === PositionCaseAVider[0] && caseInfo.pos[1] === PositionCaseAVider[1]);
                 let satiete = c2[j].get("satiete");
                 let hydratation = c2[j].get("hydratation");
+                let sexe = c2[j].get("sexe");
+                let couleur = c2[j].get("couleur");
                 switch (nouvelleCase.couleur) {
                     case "#3498DB": // case eau
                         c2[j].set("hydratation", hydratation + 3);
@@ -367,9 +368,9 @@ function partie() {
                         c2[j].set("satiete", satiete + 2);
                         break;
                     case "#FF003B": // tanière
-                        if (nouvelleCase.nbOccupants == 1 && nouvelleCase.occupants != c2[j].get("sexe") && i - c2[j].get("tourDernierEnfant") > 5) {
+                        if (nouvelleCase.nbOccupants == 1 && nouvelleCase.occupants != sexe && i - c2[j].get("tourDernierEnfant") > 5) {
                             reprodution(c2[j], nouvelleCase.occupants);
-                            io.emit('reproduction', c2[j].get("couleur"));
+                            io.emit('reproduction', couleur);
                             c2[j].set("tourDernierEnfant", i);
                         }
                         else {
@@ -377,17 +378,18 @@ function partie() {
                             nouvelleCase.occupants = c2[j];
                         }
                 }
-                c2[j].set("satiete", satiete - 0.5);
+                c2[j].set("satiete", satiete - 0.5); // altération des fonctions vitales
                 c2[j].set("hydratation", hydratation - 1);
-                console.log("après déplacement de l'espèce 1 :");
-                console.dir(c2);
+                indexDansOccupants = caseAVider.occupants.indexOf(c2[j]); // on recherche la créature dans la liste des occupants de la case sur laquelle elle est
+                caseAVider.occupants.splice(indexDansOccupants, 1); // on l'enlève de cette liste
+                io.emit("deplacer", { anciennePosition: PositionCaseAVider, nouvellePosition: but, sexe: sexe, couleur: couleur });
+                c2[j].set("posActuelle", but); // on le déplace
                 if (satiete <= 0 || hydratation <= 0) {
                     io.emit('mort', c2[j]);
                     c2.splice(j, 1);
                 }
                 // reproduction : si tourDernierEnfant == 0 => peut se reproduire direct sinon comparer au tour actuel et vérifier que tourActuel - tourDernierEnfant > 5
                 // s'occuper de concurrence pour une case directement dans la fonmction deplacer enregistrer l'occupants dans la case occupée
-                //décrémenter et ou augmenter fonctions vitales
             }
             //attendre 1 sec
             jeton++;
@@ -397,10 +399,43 @@ function partie() {
             else {
                 for (j = 0; j < c3.length; j++) {
                     let but = deplacer(c3[j]);
-                    c3[j].set("posActuelle", but);
-                    console.dir(c3);
-                    // s'occuper du cas de reproduction et de concurrence pour une case
-                    //décrémenter et ou augmenter fonctions vitales
+                    let nouvelleCase = cases.find(caseInfo => caseInfo.pos[0] === but[0] && caseInfo.pos[1] === but[1]);
+                    let PositionCaseAVider = c3[j].get("posActuelle");
+                    let caseAVider = cases.find(caseInfo => caseInfo.pos[0] === PositionCaseAVider[0] && caseInfo.pos[1] === PositionCaseAVider[1]);
+                    let satiete = c3[j].get("satiete");
+                    let hydratation = c3[j].get("hydratation");
+                    let sexe = c3[j].get("sexe");
+                    let couleur = c3[j].get("couleur");
+                    switch (nouvelleCase.couleur) {
+                        case "#3498DB": // case eau
+                            c3[j].set("hydratation", hydratation + 3);
+                            break;
+                        case "#8BC34A": // case prairie
+                            c3[j].set("satiete", satiete + 2);
+                            break;
+                        case "#FF003B": // tanière
+                            if (nouvelleCase.nbOccupants == 1 && nouvelleCase.occupants != sexe && i - c3[j].get("tourDernierEnfant") > 5) {
+                                reprodution(c3[j], nouvelleCase.occupants);
+                                io.emit('reproduction', couleur);
+                                c3[j].set("tourDernierEnfant", i);
+                            }
+                            else {
+                                nouvelleCase.nbOccupants = 1;
+                                nouvelleCase.occupants = c3[j];
+                            }
+                    }
+                    c3[j].set("satiete", satiete - 0.5); // altération des fonctions vitales
+                    c3[j].set("hydratation", hydratation - 1);
+                    indexDansOccupants = caseAVider.occupants.indexOf(c3[j]); // on recherche la créature dans la liste des occupants de la case sur laquelle elle est
+                    caseAVider.occupants.splice(indexDansOccupants, 1); // on l'enlève de cette liste
+                    io.emit("deplacer", { anciennePosition: PositionCaseAVider, nouvellePosition: but, sexe: sexe, couleur: couleur });
+                    c3[j].set("posActuelle", but); // on le déplace
+                    if (satiete <= 0 || hydratation <= 0) {
+                        io.emit('mort', c3[j]);
+                        c3.splice(j, 1);
+                    }
+                    // reproduction : si tourDernierEnfant == 0 => peut se reproduire direct sinon comparer au tour actuel et vérifier que tourActuel - tourDernierEnfant > 5
+                    // s'occuper de concurrence pour une case directement dans la fonmction deplacer enregistrer l'occupants dans la case occupée
                 }
                 jeton++;
                 if (jeton == joueurs.length) {
@@ -408,9 +443,44 @@ function partie() {
                 }
                 else {
                     for (j = 0; j < c4.length; j++) {
-                        deplacer(c4[j]);
-                        // s'occuper du cas de reproduction et de concurrence pour une case
-                        //décrémenter et ou augmenter fonctions vitales
+                        let but = deplacer(c4[j]);
+                        let nouvelleCase = cases.find(caseInfo => caseInfo.pos[0] === but[0] && caseInfo.pos[1] === but[1]);
+                        let PositionCaseAVider = c4[j].get("posActuelle");
+                        let caseAVider = cases.find(caseInfo => caseInfo.pos[0] === PositionCaseAVider[0] && caseInfo.pos[1] === PositionCaseAVider[1]);
+                        let satiete = c4[j].get("satiete");
+                        let hydratation = c4[j].get("hydratation");
+                        let sexe = c4[j].get("sexe");
+                        let couleur = c4[j].get("couleur");
+                        switch (nouvelleCase.couleur) {
+                            case "#3498DB": // case eau
+                                c4[j].set("hydratation", hydratation + 3);
+                                break;
+                            case "#8BC34A": // case prairie
+                                c4[j].set("satiete", satiete + 2);
+                                break;
+                            case "#FF003B": // tanière
+                                if (nouvelleCase.nbOccupants == 1 && nouvelleCase.occupants != sexe && i - c4[j].get("tourDernierEnfant") > 5) {
+                                    reprodution(c4[j], nouvelleCase.occupants);
+                                    io.emit('reproduction', couleur);
+                                    c4[j].set("tourDernierEnfant", i);
+                                }
+                                else {
+                                    nouvelleCase.nbOccupants = 1;
+                                    nouvelleCase.occupants = c4[j];
+                                }
+                        }
+                        c4[j].set("satiete", satiete - 0.5); // altération des fonctions vitales
+                        c4[j].set("hydratation", hydratation - 1);
+                        indexDansOccupants = caseAVider.occupants.indexOf(c4[j]); // on recherche la créature dans la liste des occupants de la case sur laquelle elle est
+                        caseAVider.occupants.splice(indexDansOccupants, 1); // on l'enlève de cette liste
+                        io.emit("deplacer", { anciennePosition: PositionCaseAVider, nouvellePosition: but, sexe: sexe, couleur: couleur });
+                        c4[j].set("posActuelle", but); // on le déplace
+                        if (satiete <= 0 || hydratation <= 0) {
+                            io.emit('mort', c4[j]);
+                            c4.splice(j, 1);
+                        }
+                        // reproduction : si tourDernierEnfant == 0 => peut se reproduire direct sinon comparer au tour actuel et vérifier que tourActuel - tourDernierEnfant > 5
+                        // s'occuper de concurrence pour une case directement dans la fonmction deplacer enregistrer l'occupants dans la case occupée
                     }
                     //attendre 1 sec
                     jeton = 0;
