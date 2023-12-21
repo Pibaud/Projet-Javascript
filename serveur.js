@@ -136,12 +136,6 @@ function deplacer(c) {
                 casesPrairie.push(caseTest);      //lister cases prairie
             }
         }
-        console.log("casesEau :");
-        console.dir(casesEau);
-        console.log("casesPrairie :");
-        console.dir(casesPrairie);
-        console.log("voisins :");
-        console.dir(voisins);
 
         if (casesEau.length >= 1 || casesPrairie.length >= 1) {    // alors on a des cases de ressources intéressantes
             if (casesEau.length >= 1) {
@@ -161,20 +155,15 @@ function deplacer(c) {
             caseObjectif = cases.find(caseInfo => caseInfo.pos[0] === but[0] && caseInfo.pos[1] === but[1]);
         }
     }
-    console.log("je vais vers la case : ");
-    console.dir(caseObjectif);
     if (caseObjectif.occupants.length == 1 && couleurs.indexOf(caseObjectif.couleur) === -1) { // si il y a déjà quelqu'un et que la case n'est pas une tanière de quelque espèce que ce soit (si la couleur de la caseObjectif n'est pas parmi la liste des couleurs des tanières)
         // ça veut dire qu'on est sur une case roche prairie ou eau occupée
         //faire le test des deux forces et renvoyer le perdant dans un voisin aléatoire et attribuer ce voisin à caseObjectif et faire but = seRapprocherDe(caseObjectif)
         if (c.couleur == caseObjectif.occupants[0].couleur) { // S'ils sont de la même espèce
-            console.log("Il y a un allié, je dois aller ailleurs. Voici les voisins libres");
 
             let casesLibres = voisins.filter(voisin => {
                 let caseVoisin = cases.find(caseInfo => caseInfo.pos[0] === voisin[0] && caseInfo.pos[1] === voisin[1]);
                 return caseVoisin.occupants.length === 0 && couleurs.indexOf(caseVoisin.couleur) === -1;
             });
-
-            console.dir(casesLibres);
 
             let casesEauLibres = casesLibres.filter(voisin => {
                 let caseVoisin = cases.find(caseInfo => caseInfo.pos[0] === voisin[0] && caseInfo.pos[1] === voisin[1]);
@@ -203,8 +192,6 @@ function deplacer(c) {
 
             but = caseLibreChoisie;
             caseObjectif = cases.find(caseInfo => caseInfo.pos[0] === caseLibreChoisie[0] && caseInfo.pos[1] === caseLibreChoisie[1]);
-            console.log("but : ");
-            console.dir(but);
         } else {
             console.log("baston");
         }
@@ -225,20 +212,30 @@ async function deplacerEtAgir(creatures, cases, io, tour) {
         let c = creatures[j];
         let but = deplacer(c);
         let nouvelleCase = cases.find(caseInfo => caseInfo.pos[0] === but[0] && caseInfo.pos[1] === but[1]);
+        console.log("nouvelle case :"+nouvelleCase);
 
         let PositionCaseAVider = c.get("posActuelle");
         let caseAVider = cases.find(caseInfo => caseInfo.pos[0] === PositionCaseAVider[0] && caseInfo.pos[1] === PositionCaseAVider[1]);
-        let satiete = c.get("satiete");
-        let hydratation = c.get("hydratation");
+        let satieteAvantPertes = c.get("satiete");
+        let hydratationAvantPertes = c.get("hydratation");
         let sexe = c.get("sexe");
         let couleur = c.get("couleur");
 
+        c.set("satiete", satieteAvantPertes - 0.5);
+        c.set("hydratation", hydratationAvantPertes - 1);
+
+        let satieteApresPertes = c.get("satiete");
+        let hydratationApresPertes = c.get("hydratation");
+
+        console.log("avant ressources : ");
+        console.dir(c);
+
         switch (nouvelleCase.couleur) {
             case "#3498DB": // case eau
-                c.set("hydratation", hydratation + 3);
+                c.set("hydratation", hydratationApresPertes + 3);
                 break;
             case "#8BC34A": // case prairie
-                c.set("satiete", satiete + 2);
+                c.set("satiete", satieteApresPertes + 2);
                 break;
             case "#FF003B": // tanière
                 if (nouvelleCase.nbOccupants == 1 && nouvelleCase.occupants != sexe && tour - c.get("tourDernierEnfant") > 5) {
@@ -251,8 +248,11 @@ async function deplacerEtAgir(creatures, cases, io, tour) {
                 }
         }
 
-        c.set("satiete", satiete - 0.5);
-        c.set("hydratation", hydratation - 1);
+        let satieteApresGains = c.get("satiete");
+        let hydratationApresGains = c.get("hydratation");        
+
+        console.log("après ressources : ");
+        console.dir(c);
 
         let indexDansOccupants = caseAVider.occupants.indexOf(c);
         caseAVider.occupants.splice(indexDansOccupants, 1);
@@ -260,7 +260,7 @@ async function deplacerEtAgir(creatures, cases, io, tour) {
         io.emit("deplacer", { anciennePosition: PositionCaseAVider, nouvellePosition: but, sexe: sexe, couleur: couleur });
         c.set("posActuelle", but);
 
-        if (satiete <= 0 || hydratation <= 0) {
+        if (satieteApresGains <= 0 || hydratationApresGains <= 0) {
             io.emit('mort', c);
             creatures.splice(j, 1);
         }
@@ -300,12 +300,6 @@ async function partie() {
                 caseInfo.couleur = "#FF8BF1";
             }
             cases.push(caseInfo);
-        }
-    }
-    console.log("affichage des tanières :");
-    for(i = 0; i<cases.length; i++){
-        if(cases[i].couleur == "#FF003B" || cases[i].couleur == "#C400FF" || cases[i].couleur == "#F1C40F" || cases[i].couleur == "#FF8BF1"){
-            console.dir(cases[i]);
         }
     }
     io.emit('cases', { 'cases': cases, 'nbJoueurs': nbJoueurs }); // envoi des informations du terrain
@@ -366,7 +360,6 @@ async function partie() {
         for (let creatures of toutesCréatures) {
             if(creatures.length > 0){
                 await deplacerEtAgir(creatures, cases, io, i);
-                console.dir(creatures);
                 await delay(2000); // Délai de 2 secondes entre chaque tour d'espèce
             }
         }
