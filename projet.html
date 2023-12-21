@@ -113,10 +113,10 @@
             d3.select("#g90 path").attr("fill", "#C400FF");
          }
          if (nbJoueurs >= 3) {
-            d3.select("#g162 path").attr("fill", "#F1C40F");
+            d3.select("#g6 path").attr("fill", "#F1C40F");
          }
          if (nbJoueurs == 4) {
-            d3.select("#g6 path").attr("fill", "#FF8BF1");
+            d3.select("#g162 path").attr("fill", "#FF8BF1");
          }
       }
 
@@ -236,7 +236,7 @@
                .attr("fill", "#C400FF");
          }
          if (nbJoueurs >= 3) {
-            var groupe = d3.select("#g162"); // Remplacez 78 par l'ID de l'hexagone spécifique
+            var groupe = d3.select("#g6"); // Remplacez 78 par l'ID de l'hexagone spécifique
             var x = +groupe.attr("data-x"); // Convertissez en nombre
             var y = +groupe.attr("data-y"); // Convertissez en nombre
             groupe.append("rect")
@@ -255,7 +255,7 @@
                .attr("fill", "#F1C40F");
          }
          if (nbJoueurs == 4) {
-            var groupe = d3.select("#g6"); // Remplacez 78 par l'ID de l'hexagone spécifique
+            var groupe = d3.select("#g162"); // Remplacez 78 par l'ID de l'hexagone spécifique
             var x = +groupe.attr("data-x"); // Convertissez en nombre
             var y = +groupe.attr("data-y"); // Convertissez en nombre
             groupe.append("rect")

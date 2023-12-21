@@ -31,8 +31,8 @@ for (l = 0; l < 13; l++) {
     }
 }
 
-server.listen(9999, () => {
-    console.log('Le serveur écoute sur le port 9999');
+server.listen(7777, () => {
+    console.log('Le serveur écoute sur le port 7777');
 });
 
 function nbAleatoire() {
@@ -136,25 +136,27 @@ function deplacer(c) {
                 casesPrairie.push(caseTest);      //lister cases prairie
             }
         }
+        console.log("casesEau :");
+        console.dir(casesEau);
+        console.log("casesPrairie :");
+        console.dir(casesPrairie);
+        console.log("voisins :");
+        console.dir(voisins);
 
         if (casesEau.length >= 1 || casesPrairie.length >= 1) {    // alors on a des cases de ressources intéressantes
             if (casesEau.length >= 1) {
-                console.log("je veux aller vers l'eau");
                 caseObjectif = caseLaPlusProche(casesEau);
                 but = seRapprocherDe(caseObjectif.pos);
                 if (casesPrairie.length >= 1 && hydratation > satiete) {
-                    console.log("je veux aller vers la prairie");
                     caseObjectif = caseLaPlusProche(casesPrairie);
                     but = seRapprocherDe(caseObjectif.pos);
                 }
             } else {
-                console.log("je veux aller vers la prairie");
                 caseObjectif = caseLaPlusProche(casesPrairie);
                 but = seRapprocherDe(caseObjectif.pos);
             }
         }
         else {                                              // alors on en a pas et on se déplace au hasard
-            console.log("rien d'intéressant, je bouge aléatoirement");
             but = voisins[Math.floor(Math.random() * voisins.length)];
             caseObjectif = cases.find(caseInfo => caseInfo.pos[0] === but[0] && caseInfo.pos[1] === but[1]);
         }
@@ -183,28 +185,19 @@ function deplacer(c) {
                 return caseVoisin.couleur === "#8BC34A";
             });
 
-            console.log("cases eau libres : ");
-            console.dir(casesEauLibres);
-            console.log("cases prairie libres : ");
-            console.dir(casesPrairieLibres);
-
             let caseLibreChoisie;
 
             if (casesEauLibres.length > 0 || casesPrairieLibres.length > 0) { // S'il y a des cases eau parmi les voisins et que hydratation <= satiete, choisir aléatoirement les cases Eau
                 if (casesEauLibres.length >= 1) {
-                    console.log("je veux aller vers l'eau");
                     caseLibreChoisie = casesEauLibres[Math.floor(Math.random() * casesEauLibres.length)];
                     if (casesPrairie.length >= 1 && hydratation > satiete) {
-                        console.log("je veux aller vers la prairie");
                         caseLibreChoisie = casesPrairieLibres[Math.floor(Math.random() * casesPrairieLibres.length)];
                     }
                 } else {
-                    console.log("je veux aller vers la prairie (y'a que ça en vue)");
                     caseLibreChoisie = casesPrairieLibres[Math.floor(Math.random() * casesPrairieLibres.length)];
                 }
             }
-            else{
-                console.log("rien d'intéressant, je bouge aléatoirement");
+            else {
                 caseLibreChoisie = casesLibres[Math.floor(Math.random() * casesLibres.length)];
             }
 
@@ -220,12 +213,61 @@ function deplacer(c) {
         return caseCourante.pos[0] == caseObjectif.pos[0] && caseCourante.pos[1] == caseObjectif.pos[1];
     });
     cases[indiceCase].occupants.push(c); // ajout de la créature dans la liste des occupants de sa caseObjectif
-    console.log("ajout de la créature dans la liste des occupants");
-    console.dir(cases[indiceCase]);
     return but;
 }
 
-function partie() {
+async function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function deplacerEtAgir(creatures, cases, io, tour) {
+    for (let j = 0; j < creatures.length; j++) {
+        let c = creatures[j];
+        let but = deplacer(c);
+        let nouvelleCase = cases.find(caseInfo => caseInfo.pos[0] === but[0] && caseInfo.pos[1] === but[1]);
+
+        let PositionCaseAVider = c.get("posActuelle");
+        let caseAVider = cases.find(caseInfo => caseInfo.pos[0] === PositionCaseAVider[0] && caseInfo.pos[1] === PositionCaseAVider[1]);
+        let satiete = c.get("satiete");
+        let hydratation = c.get("hydratation");
+        let sexe = c.get("sexe");
+        let couleur = c.get("couleur");
+
+        switch (nouvelleCase.couleur) {
+            case "#3498DB": // case eau
+                c.set("hydratation", hydratation + 3);
+                break;
+            case "#8BC34A": // case prairie
+                c.set("satiete", satiete + 2);
+                break;
+            case "#FF003B": // tanière
+                if (nouvelleCase.nbOccupants == 1 && nouvelleCase.occupants != sexe && tour - c.get("tourDernierEnfant") > 5) {
+                    reprodution(c, nouvelleCase.occupants);
+                    io.emit('reproduction', couleur);
+                    c.set("tourDernierEnfant", tour);
+                } else {
+                    nouvelleCase.nbOccupants = 1;
+                    nouvelleCase.occupants = c;
+                }
+        }
+
+        c.set("satiete", satiete - 0.5);
+        c.set("hydratation", hydratation - 1);
+
+        let indexDansOccupants = caseAVider.occupants.indexOf(c);
+        caseAVider.occupants.splice(indexDansOccupants, 1);
+
+        io.emit("deplacer", { anciennePosition: PositionCaseAVider, nouvellePosition: but, sexe: sexe, couleur: couleur });
+        c.set("posActuelle", but);
+
+        if (satiete <= 0 || hydratation <= 0) {
+            io.emit('mort', c);
+            creatures.splice(j, 1);
+        }
+    }
+}
+
+async function partie() {
     for (let l = 0; l < 13; l++) {         // Génération des cases
         for (let c = 0; c < 13; c++) {
             let couleur = nbAleatoire();
@@ -245,19 +287,25 @@ function partie() {
                     caseInfo.couleur = "#707B7C"; // rocher
                     break;
             }
-            if (c == 0 && l == 6 && nbJoueurs == 1) {   // si c'est une tanière on peint par dessus
+            if (c == 0 && l == 6 && nbJoueurs >= 1) {   // si c'est une tanière on peint par dessus
                 caseInfo.couleur = "#FF003B";
             }
-            if (c == 12 && l == 6 && nbJoueurs == 2) {
+            if (c == 12 && l == 6 && nbJoueurs >= 2) {
                 caseInfo.couleur = "#C400FF";
             }
-            if (c == 6 && l == 0 && nbJoueurs == 3) {
+            if (c == 6 && l == 0 && nbJoueurs >= 3) {
                 caseInfo.couleur = "#F1C40F";
             }
             if (c == 6 && l == 12 && nbJoueurs == 4) {
                 caseInfo.couleur = "#FF8BF1";
             }
             cases.push(caseInfo);
+        }
+    }
+    console.log("affichage des tanières :");
+    for(i = 0; i<cases.length; i++){
+        if(cases[i].couleur == "#FF003B" || cases[i].couleur == "#C400FF" || cases[i].couleur == "#F1C40F" || cases[i].couleur == "#FF8BF1"){
+            console.dir(cases[i]);
         }
     }
     io.emit('cases', { 'cases': cases, 'nbJoueurs': nbJoueurs }); // envoi des informations du terrain
@@ -301,72 +349,29 @@ function partie() {
         taniereCorrespondante.occupants.push(toutesCréatures[i][1]); // et Femelle
     }
     io.emit('spawn', nbJoueurs);
-    //attendre 3 sec
 
-    function deplacerEtAgir(creatures, cases, io, tour) {
-        for (let j = 0; j < creatures.length; j++) {
-            let c = creatures[j];
-            let but = deplacer(c);
-            let nouvelleCase = cases.find(caseInfo => caseInfo.pos[0] === but[0] && caseInfo.pos[1] === but[1]);
-            let PositionCaseAVider = c.get("posActuelle");
-            let caseAVider = cases.find(caseInfo => caseInfo.pos[0] === PositionCaseAVider[0] && caseInfo.pos[1] === PositionCaseAVider[1]);
-            let satiete = c.get("satiete");
-            let hydratation = c.get("hydratation");
-            let sexe = c.get("sexe");
-            let couleur = c.get("couleur");
-    
-            switch (nouvelleCase.couleur) {
-                case "#3498DB": // case eau
-                    c.set("hydratation", hydratation + 3);
-                    break;
-                case "#8BC34A": // case prairie
-                    c.set("satiete", satiete + 2);
-                    break;
-                case "#FF003B": // tanière
-                    if (nouvelleCase.nbOccupants == 1 && nouvelleCase.occupants != sexe && tour - c.get("tourDernierEnfant") > 5) {
-                        reprodution(c, nouvelleCase.occupants);
-                        io.emit('reproduction', couleur);
-                        c.set("tourDernierEnfant", tour);
-                    } else {
-                        nouvelleCase.nbOccupants = 1;
-                        nouvelleCase.occupants = c;
-                    }
-            }
-    
-            c.set("satiete", satiete - 0.5);
-            c.set("hydratation", hydratation - 1);
-    
-            let indexDansOccupants = caseAVider.occupants.indexOf(c);
-            caseAVider.occupants.splice(indexDansOccupants, 1);
-    
-            io.emit("deplacer", { anciennePosition: PositionCaseAVider, nouvellePosition: but, sexe: sexe, couleur: couleur });
-            c.set("posActuelle", but);
-    
-            if (satiete <= 0 || hydratation <= 0) {
-                io.emit('mort', c);
-                creatures.splice(j, 1);
-            }
-        }
-    }
-    
+    io.emit('messageServeur', "3..");
+    await delay(1000); // Délai de 1 seconde avant le début de la partie
+    io.emit('messageServeur', "2..");
+    await delay(1000); // Délai de 1 seconde
+    io.emit('messageServeur', "1..");
+    await delay(1000); // Délai de 1 seconde
+    io.emit('messageServeur', "La partie commence !")
+
     for (let i = 1; i <= nbTours; i++) {
-        if (i == 3) {
+        if (i === 3) {
             reproductionPossible = true;
         }
-    
-        deplacerEtAgir(c1, cases, io, i);
-        // Attendre 1 seconde
-    
-        deplacerEtAgir(c2, cases, io, i);
-        // Attendre 1 seconde
-    
-        deplacerEtAgir(c3, cases, io, i);
-        // Attendre 1 seconde
-    
-        deplacerEtAgir(c4, cases, io, i);
-        // Attendre 1 seconde
+
+        for (let creatures of toutesCréatures) {
+            if(creatures.length > 0){
+                await deplacerEtAgir(creatures, cases, io, i);
+                console.dir(creatures);
+                await delay(2000); // Délai de 2 secondes entre chaque tour d'espèce
+            }
+        }
     }
-    //l'espèce avec la plus grande population gagne
+    // L'espèce avec la plus grande population gagne
 }
 
 io.on('connection', (socket) => {
