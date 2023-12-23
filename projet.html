@@ -12,7 +12,7 @@
 
       var nbLignes = nbColonnes = 13;
       var rayon = 35;
-      const coteCarre = coteTriangle = 20;
+      const coteCarre = 20;
       var numJoueur = -1;
       const nbMaxJoueurs = 4;
 
@@ -278,7 +278,7 @@
       socket.on('deplacer', (data) => {
          let idAncienGroupe = "#g" + (data.anciennePosition[1] * 13 + data.anciennePosition[0]);
          let idNouveauGroupe = "#g" + (data.nouvellePosition[1] * 13 + data.nouvellePosition[0]);
-         console.log("vider le groupe "+idAncienGroupe+" et remplir le groupe "+idNouveauGroupe);
+         console.log("vider le groupe " + idAncienGroupe + " et remplir le groupe " + idNouveauGroupe);
 
          let ancienGroupe = d3.select(idAncienGroupe);
          if (data.sexe == "M") {
@@ -304,6 +304,32 @@
             nouveauGroupe.append("circle")
                .attr("cx", xNouvelle + 30)
                .attr("cy", yNouvelle + 17)
+               .attr("r", coteCarre / 2)
+               .attr("stroke", "black")
+               .attr("fill", data.couleur);
+         }
+      });
+
+      socket.on('reproduction', (data) => {
+         let idGroupe = "#g" + (data.positionCaseLibre[1] * 13 + data.positionCaseLibre[0]);
+         let valeurAleatoire = Math.random();
+         let sexe = valeurAleatoire < 0.5 ? "M" : "F";
+         let groupe = d3.select(idGroupe);
+         var xG = +groupe.attr("data-x"); // Convertissez en nombre
+         var yG = +groupe.attr("data-y"); // Convertissez en nombre
+
+         if (sexe == "M") {
+            groupe.append("rect")
+               .attr("width", coteCarre)
+               .attr("height", coteCarre)
+               .attr("x", xG + 20)
+               .attr("y", yG + 7)
+               .attr("stroke", "black")
+               .attr("fill", data.couleur);
+         } else {
+            groupe.append("circle")
+               .attr("cx", xG + 30)
+               .attr("cy", yG + 17)
                .attr("r", coteCarre / 2)
                .attr("stroke", "black")
                .attr("fill", data.couleur);
