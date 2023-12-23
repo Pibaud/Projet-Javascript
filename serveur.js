@@ -22,7 +22,6 @@ var c2 = [];
 var c3 = [];
 var c4 = [];
 var toutesCréatures = [c1, c2, c3, c4];
-var doitVider = true;
 var reproductionPossible = false;
 var positionsPossibles = [];
 for (l = 0; l < 13; l++) {
@@ -116,9 +115,11 @@ function trouverVoisinVideLePlusProcheDeLaTaniere(voisins, cases, positionTanier
 
 let caseObjectif;
 
-function deplacer(c) {
+function deplacer(c, tour) {
     let taniere = c.get("taniere");
-    let position = c.get("posActuelle");
+    let position = [];
+    position.push(c.get("posActuelle")[0]);
+    position.push(c.get("posActuelle")[1]);
     let but;
     let perception = c.get("perception");
     let satiete = c.get("satiete");
@@ -164,15 +165,12 @@ function deplacer(c) {
     }
     console.log("je suis :");
     console.dir(c);
-    if (reproductionPossible && satiete >= 6.0 && hydratation >= 6.0 || c.get("veutSeReproduire")) { // priorité à la reproduction et la garder jusqu'à sa mort (faire un autre if au dessus pour savoir si on est deja dans une taniere si oui y rester)
+    if (reproductionPossible && tour - c.get("tourDernierEnfant") >= 5 && satiete >= 6.0 && hydratation >= 6.0 || c.get("veutSeReproduire")) { // priorité à la reproduction et la garder jusqu'à sa mort (faire un autre if au dessus pour savoir si on est deja dans une taniere si oui y rester)
         c.set("veutSeReproduire", true);
         but = seRapprocherDe(taniere); //
-        console.log("but : " + but);
         caseObjectif = cases.find(caseInfo => caseInfo.pos[0] === but[0] && caseInfo.pos[1] === but[1]);
-        console.log("la case qui va me rapprocher de la tanière :");
-        console.dir(caseObjectif);
         if (but[0] != taniere[0] && but[1] != taniere[1]) {
-            if (caseObjectif.ocupants.length == 1) {
+            if (caseObjectif.occupants.length == 1) {
                 let voisinsDansRayon = voisins.filter(voisin => {
                     return Math.abs(voisin[0] - taniere[0]) <= 1 && Math.abs(voisin[1] - taniere[1]) <= 1;
                 });
@@ -180,9 +178,7 @@ function deplacer(c) {
                 let voisinVideLePlusProche = trouverVoisinVideLePlusProcheDeLaTaniere(voisinsDansRayon, cases, taniere);
 
                 if (voisinVideLePlusProche !== null) {
-                    console.log("avant j'allais vers " + but);
                     but = voisinVideLePlusProche;
-                    console.log("mais comme il y a quelqu'un je vais vers " + but);
                 }
             }
         }
@@ -205,17 +201,13 @@ function deplacer(c) {
             if (casesEau.length >= 1) {
                 caseObjectif = caseLaPlusProche(casesEau, position);
                 but = seRapprocherDe(caseObjectif.pos);
-                console.log("je vais vers la case eau : " + but);
                 if (casesPrairie.length >= 1 && hydratation > satiete) {
-                    console.log("mais j'ai plus faim que soif et il y a une case prairie");
                     caseObjectif = caseLaPlusProche(casesPrairie, position);
                     but = seRapprocherDe(caseObjectif.pos);
-                    console.log("je vais vers la case prairie : " + but);
                 }
             } else {
                 caseObjectif = caseLaPlusProche(casesPrairie, position);
                 but = seRapprocherDe(caseObjectif.pos);
-                console.log("je vais vers la case prairie : " + but);
             }
         }
         else {                                              // alors on en a pas et on se déplace au hasard dans un rayon de 1
@@ -224,13 +216,10 @@ function deplacer(c) {
             });
             but = voisinsDansRayon[Math.floor(Math.random() * voisinsDansRayon.length)];
             caseObjectif = cases.find(caseInfo => caseInfo.pos[0] === but[0] && caseInfo.pos[1] === but[1]);
-            console.log("rien d'intéressant je vais vers aléatoirement vers : " + but);
         }
         if (caseObjectif.occupants.length == 1) { // il y a quelqu'un
             if (c.couleur == caseObjectif.occupants[0].couleur) { // S'ils sont de la même espèce
                 if (caseObjectif.occupants[0].get("posActuelle")[0] == but[0] && caseObjectif.occupants[0].get("posActuelle")[1] == but[1]) { // si l'occupant est bien dans cette case (évite les erreurs de variable par adresse mémoire)
-                    console.log("il y a un allié je dois l'éviter. Cet allié est :");
-                    console.dir(caseObjectif.occupants[0]);
                     let casesLibres = voisins.filter(voisin => {
                         let caseVoisin = cases.find(caseInfo => caseInfo.pos[0] === voisin[0] && caseInfo.pos[1] === voisin[1]);
                         return caseVoisin.occupants.length === 0 && couleurs.indexOf(caseVoisin.couleur) === -1;
@@ -250,25 +239,25 @@ function deplacer(c) {
                     if (casesEauLibres.length > 0 || casesPrairieLibres.length > 0) {
                         if (casesEauLibres.length >= 1) {
                             caseLibreChoisie = seRapprocherDe(positionLaPlusProche(casesEauLibres, position));
-                            console.log("je vais vers la case eau : " + caseLibreChoisie + " car je vois " + positionLaPlusProche(casesEauLibres, position));
                             if (casesPrairie.length >= 1 && hydratation > satiete) {
-                                console.log("mais j'ai plus faim que soif et il y a une case prairie");
+                                
                                 caseLibreChoisie = seRapprocherDe(positionLaPlusProche(casesPrairieLibres, position));
-                                console.log("je vais vers la case prairie : " + caseLibreChoisie + " car je vois " + positionLaPlusProche(casesPrairieLibres, position));
+                                
                             }
                         } else {
                             caseLibreChoisie = seRapprocherDe(positionLaPlusProche(casesPrairieLibres, position));
-                            console.log("je vais vers la case prairie : " + caseLibreChoisie + " car je vois " + positionLaPlusProche(casesPrairieLibres, position));
+                            
+                            
                         }
                     } else {
                         caseLibreChoisie = positionLaPlusProche(casesLibres[Math.floor(Math.random() * casesLibres.length)], position);
-                        console.log("rien d'intéressant je vais aléatoirement vers : " + caseLibreChoisie + " à cause de mon ami .....");
+                        
                     }
 
                     but = caseLibreChoisie;
                     caseObjectif = cases.find(caseInfo => caseInfo.pos[0] === caseLibreChoisie[0] && caseInfo.pos[1] === caseLibreChoisie[1]);
                     if (caseObjectif.occupants.length == 1) {
-                        console.log("collision évitée");
+                       
                         but = position;
                         caseObjectif = cases.find(caseInfo => caseInfo.pos[0] === but[0] && caseInfo.pos[1] === but[1]);
                     }
@@ -290,7 +279,8 @@ async function deplacerEtAgir(creatures, cases, io, tour) {
     for (let j = 0; j < creatures.length; j++) {
 
         let c = creatures[j];
-        let but = deplacer(c);
+        let taniere = c.get("taniere");
+        let but = deplacer(c, tour);
         let nouvelleCase = cases.find(caseInfo => caseInfo.pos[0] === but[0] && caseInfo.pos[1] === but[1]);
 
         let PositionCaseAVider = c.get("posActuelle");
@@ -304,7 +294,6 @@ async function deplacerEtAgir(creatures, cases, io, tour) {
         c.set("hydratation", hydratationAvantPertes - 1);
 
         if (c.get("satiete") <= 0 || c.get("hydratation") <= 0) {
-            console.log("RIP BOZO");
             io.emit('mort', { PositionCaseAVider: PositionCaseAVider, sexe: sexe });
             creatures.splice(j, 1);
         }
@@ -349,14 +338,51 @@ async function deplacerEtAgir(creatures, cases, io, tour) {
                             nouvelleCase.occupants.push(c);
                             let indexDansOccupants = caseAVider.occupants.indexOf(c);
                             caseAVider.occupants.splice(indexDansOccupants, 1);
+
+                            let voisinsRayon1 = [[0, 1], [0, -1], [1, 0], [1, -1], [-1, 0], [-1, 1]];
+                            let voisinsTaniere = [];
+                            for (let i = 0; i < voisinsRayon1.length; i++) {
+                                let voisin = [taniere[0] + voisinsRayon1[i][0], taniere[1] + voisinsRayon1[i][1]];
+                                let caseVoisine = cases.find(caseInfo => caseInfo.pos[0] === voisin[0] && caseInfo.pos[1] === voisin[1]);
+                                if (positionsPossibles.some(p => p[0] === voisin[0] && p[1] === voisin[1])) {
+                                    if (caseVoisine && caseVoisine.occupants.length == 0) {
+                                        voisinsTaniere.push(voisin);
+                                    }
+                                }
+                            }
+                            console.log("case choisie pour l'enfant :");
+                            let positionCaseLibre = voisinsTaniere[0];
+                            console.log(positionCaseLibre);
+
+                            let valeurAleatoire = Math.random();
+                            let nouveauSexe = valeurAleatoire < 0.5 ? "M" : "F";
+                            let nouvelleCreature = new Map();
+                            nouvelleCreature.set("sexe", nouveauSexe);
+                            nouvelleCreature.set("couleur", couleur);
+                            nouvelleCreature.set("reproduction", c.get("reproduction"));
+                            nouvelleCreature.set("perception", c.get("perception"));
+                            nouvelleCreature.set("force", c.get("force"));
+                            nouvelleCreature.set("satiete", 3.0);
+                            nouvelleCreature.set("hydratation", 3.0);
+                            nouvelleCreature.set("taniere", taniere);
+                            nouvelleCreature.set("posActuelle", positionCaseLibre); // trouver quelle case de départ lui donner
+                            nouvelleCreature.set("tourDernierEnfant", 0);
+                            nouvelleCreature.set("veutSeReproduire", false);
+                            creatures.push(nouvelleCreature);
+
+                            // push dans la liste des occupants de la case dans laquelle elle apparait
                             io.emit("deplacer", { anciennePosition: PositionCaseAVider, nouvellePosition: but, sexe: sexe, couleur: couleur });
-                            io.emit('reproduction', { couleur: couleur, positionCaseLibre: PositionCaseAVider });
+                            io.emit('reproduction', { couleur: couleur, positionCaseLibre: positionCaseLibre, sexe: sexe });
                             console.log("SE SONT REPRODUITS");
                             console.log("\n");
+
+                            let caseDuConjoint = cases.find(caseInfo => caseInfo.pos[0] === taniere[0] && caseInfo.pos[1] === taniere[1]);
+                            caseDuConjoint.occupants[0].set("tourDernierEnfant", tour);
+                            caseDuConjoint.occupants[0].set("veutSeReproduire", false);
+
                             c.set("tourDernierEnfant", tour);
                             c.set("posActuelle", but);
                             c.set("veutSeReproduire", false);
-                            //appeler reproduction
                         }
                         else {
                             console.log("ils sont déjà 2 ou le sexe ne correspond pas");
@@ -467,7 +493,10 @@ async function partie() {
         for (let creatures of toutesCréatures) {
             if (creatures.length > 0) {
                 await deplacerEtAgir(creatures, cases, io, i);
-                await delay(1000); // Délai de 2 secondes entre chaque tour d'espèce
+                console.log("liste des créatures:");
+                console.dir(creatures);
+                console.log("\n");
+                await delay(100); // Délai de 2 secondes entre chaque tour d'espèce
             }
         }
     }

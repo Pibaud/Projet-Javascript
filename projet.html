@@ -312,13 +312,11 @@
 
       socket.on('reproduction', (data) => {
          let idGroupe = "#g" + (data.positionCaseLibre[1] * 13 + data.positionCaseLibre[0]);
-         let valeurAleatoire = Math.random();
-         let sexe = valeurAleatoire < 0.5 ? "M" : "F";
          let groupe = d3.select(idGroupe);
          var xG = +groupe.attr("data-x"); // Convertissez en nombre
          var yG = +groupe.attr("data-y"); // Convertissez en nombre
 
-         if (sexe == "M") {
+         if (data.sexe == "M") {
             groupe.append("rect")
                .attr("width", coteCarre)
                .attr("height", coteCarre)
