@@ -336,6 +336,18 @@
          }
       });
 
+      socket.on('mort', (data) => {
+         let idGroupe = "#g" + (data.PositionCaseAVider[1] * 13 + data.PositionCaseAVider[0]);
+         let sexe = data.sexe;
+         let groupe = d3.select(idGroupe);
+
+         if (data.sexe == "M") {
+            groupe.select("rect").remove();
+         } else {
+            groupe.select("circle").remove();
+         }
+      });
+
    </script>
 </head>
 
